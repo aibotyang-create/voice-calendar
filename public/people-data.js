@@ -1,3 +1,4 @@
+import {parseBirthday} from './birthdays.js';
 export const categoryPalette=[['블루','#8ab4ff'],['라벤더','#b69cff'],['민트','#77d6be'],['살구','#ffbd8a'],['핑크','#f6a5c3'],['옐로','#f3d66c'],['스카이','#82d7ed'],['코랄','#f7a599'],['페리윙클','#9fa9f6'],['그린','#b2d78a']];
 export function categoryPaletteColor(color){const legacy={'#9daee4':'#8ab4ff','#e3b989':'#ffbd8a','#8fc5bc':'#77d6be','#b7a4d6':'#b69cff','#e4a8bb':'#f6a5c3'};if(legacy[color])return legacy[color];if(!/^#[0-9a-f]{6}$/i.test(color||''))return categoryPalette[0][1];const rgb=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)),a=rgb(color);return categoryPalette.map(([,c])=>({c,d:rgb(c).reduce((sum,n,i)=>sum+(n-a[i])**2,0)})).sort((a,b)=>a.d-b.d)[0].c;}
 export const categories=['대표','멘토','기관','지인','친구'];
@@ -14,6 +15,7 @@ export function cleanContact(input,options=defaultCategories){
   out.category=normalizedCategory(input.category??'지인',options);out.color=/^#[0-9a-f]{6}$/i.test(input.color||'')?input.color:'';out.strength=Math.max(1,Math.min(5,Number.parseInt(input.strength)||2));out.archived=Boolean(input.archived);
   out.tags=[...new Set((Array.isArray(input.tags)?input.tags:[]).map(t=>String(t).trim().slice(0,40)).filter(Boolean))].slice(0,20);
   const intro=String(input.intro||'').replace(/[\r\n]+/g,' ').trim().slice(0,200);if(intro)out.intro=intro;
+  const birthday=parseBirthday(input.birthday);if(birthday)out.birthday=birthday.value;
   return out;
 }
 export function matchPeople(event,contacts){

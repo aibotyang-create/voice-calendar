@@ -1,6 +1,7 @@
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 export function refineContactEditor({drawer,getData}){
   const $=id=>document.getElementById(id),form=$('personForm'),grid=form.querySelector('.profile-details-grid');drawer.classList.add('refined-contact-editor');
+  const identity=form.querySelector('.profile-identity');identity.append($('closePerson'));form.querySelector('.agenda-heading').hidden=true;
   const intro=el('p','contact-editor-intro');form.querySelector('.profile-identity').after(intro);
   const basic=el('section','contact-form-section');basic.append(el('h3','','기본 정보'),el('p','contact-section-hint','이름과 소속을 적어주세요. 이름만 입력해도 등록할 수 있어요.'));grid.before(basic);basic.append(grid);
   const extra=el('details','contact-extra-fields'),extraGrid=el('div','profile-details-grid');extra.append(el('summary','','만난 자리 · 날짜 · 추가 연락처'),extraGrid);basic.after(extra);for(const id of ['pMetAt','pLastContact','pRegisteredOn','pSns','pAddress'])extraGrid.append($(id).closest('label'));

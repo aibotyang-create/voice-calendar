@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'qaz73700@gmail.com';
+    }
+    match /users/{uid}/contacts/{contactId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['name','company','title','category','strength','lastContact','notes','focus','followup','email','phone','archived','updatedAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.company is string && request.resource.data.company.size() <= 200
+        && request.resource.data.title is string && request.resource.data.title.size() <= 100
+        && request.resource.data.category in ['고객','파트너','투자자','지인']
+        && request.resource.data.strength is int && request.resource.data.strength >= 1 && request.resource.data.strength <= 5
+        && request.resource.data.lastContact is string && request.resource.data.lastContact.size() <= 10
+        && request.resource.data.notes is string && request.resource.data.notes.size() <= 4000
+        && request.resource.data.focus is string && request.resource.data.focus.size() <= 1000
+        && request.resource.data.followup is string && request.resource.data.followup.size() <= 1000
+        && request.resource.data.email is string && request.resource.data.email.size() <= 200
+        && request.resource.data.phone is string && request.resource.data.phone.size() <= 100
+        && request.resource.data.archived is bool
+        && request.resource.data.updatedAt == request.time;
+    }
+    match /users/{uid}/tasks/{taskId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['eventId','label','done','updatedAt'])
+        && request.resource.data.eventId is string && request.resource.data.eventId.size() <= 1024
+        && request.resource.data.label is string && request.resource.data.label.size() <= 1000
+        && request.resource.data.done is bool && request.resource.data.updatedAt == request.time;
+    }
+  }
+}

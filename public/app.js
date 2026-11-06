@@ -77,7 +77,8 @@ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(Speech){
   recognition=new Speech();recognition.lang='ko-KR';recognition.interimResults=true;recognition.continuous=false;
   let base='',failed=false;
-  recognition.onstart=()=>{listening=true;$('mic').classList.add('listening');$('mic').querySelector('span').textContent='말하기 완료';$('submit').disabled=true;status('듣고 있어요. 다 말하면 마이크를 한 번 더 눌러주세요.');};
+  document.addEventListener('malhae-voice-start',event=>{if(event.detail!=='schedule'&&listening){failed=true;recognition.abort();}});
+  recognition.onstart=()=>{document.dispatchEvent(new CustomEvent('malhae-voice-start',{detail:'schedule'}));listening=true;$('mic').classList.add('listening');$('mic').querySelector('span').textContent='말하기 완료';$('submit').disabled=true;status('듣고 있어요. 다 말하면 마이크를 한 번 더 눌러주세요.');};
   recognition.onresult=e=>{let result='';for(let i=0;i<e.results.length;i++) result+=e.results[i][0].transcript;$('text').value=base+result;};
   recognition.onerror=e=>{failed=true;status(e.error==='not-allowed'?'마이크 권한을 허용해주세요. 텍스트로도 입력할 수 있어요.':'음성을 인식하지 못했어요. 다시 말하거나 직접 입력해주세요.');};
   recognition.onend=()=>{listening=false;$('mic').classList.remove('listening');$('mic').querySelector('span').textContent='말로 입력';$('submit').disabled=busy;if(!failed&&$('text').value.trim()) parse();};

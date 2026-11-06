@@ -9,7 +9,7 @@ service cloud.firestore {
     match /users/{uid}/contacts/{contactId} {
       allow read: if owner(uid);
       allow create, update: if owner(uid)
-        && request.resource.data.keys().hasOnly(['name','company','title','category','color','strength','lastContact','notes','focus','followup','email','phone','address','archived','updatedAt'])
+        && request.resource.data.keys().hasOnly(['name','company','title','category','color','strength','lastContact','notes','focus','followup','email','phone','address','sns','archived','updatedAt'])
         && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
         && request.resource.data.company is string && request.resource.data.company.size() <= 200
         && request.resource.data.title is string && request.resource.data.title.size() <= 100
@@ -23,6 +23,7 @@ service cloud.firestore {
         && request.resource.data.email is string && request.resource.data.email.size() <= 200
         && request.resource.data.phone is string && request.resource.data.phone.size() <= 100
         && (!('address' in request.resource.data) || (request.resource.data.address is string && request.resource.data.address.size() <= 500))
+        && (!('sns' in request.resource.data) || (request.resource.data.sns is string && request.resource.data.sns.size() <= 500))
         && request.resource.data.archived is bool
         && request.resource.data.updatedAt == request.time;
     }
@@ -63,6 +64,7 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
     }
     match /users/{uid}/conversations/{entryId} {
+      allow delete: if owner(uid);
       allow read: if owner(uid);
       allow create, update: if owner(uid)
         && request.resource.data.keys().hasOnly(['contactId','date','text','createdAt','updatedAt'])

@@ -28,6 +28,10 @@ export async function prepareStore(config){
     watchTodos:(date,onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('date','==',date),fs.limit(300)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
     watchNote:(date,onData,onError)=>fs.onSnapshot(fs.doc(db,...root,'dailyNotes',date),snapshot=>onData(snapshot.exists()?snapshot.data().text:''),onError),
     note:async(date,text)=>fs.setDoc(fs.doc(db,...root,'dailyNotes',date),{text,updatedAt:fs.serverTimestamp()}),
+    watchPlanning:(from,to,onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('date','>=',from),fs.where('date','<=',to),fs.limit(1000)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
+    watchMemories:(onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'conversations'),fs.orderBy('date','desc'),fs.limit(200)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
+    deleteConversation:id=>fs.deleteDoc(fs.doc(db,...root,'conversations',id)),
+    deleteContact:async(id)=>{await fs.updateDoc(fs.doc(db,...root,'contacts',id),{archived:true,updatedAt:fs.serverTimestamp()});},
     watchConversations:(contactId,onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'conversations'),fs.where('contactId','==',contactId),fs.limit(300)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
     conversation:async(entry,lastContact)=>{const {id,...data}=entry,batch=fs.writeBatch(db);batch.set(fs.doc(db,...root,'conversations',id),{...data,updatedAt:fs.serverTimestamp()});batch.update(fs.doc(db,...root,'contacts',entry.contactId),{lastContact,updatedAt:fs.serverTimestamp()});await batch.commit();},
     close:()=>{offContacts();offTasks();offCategories();offTodos();auth.signOut(session).catch(()=>{});}

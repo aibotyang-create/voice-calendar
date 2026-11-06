@@ -1,0 +1,1 @@
+{"name":"malhae-calendar","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"node dev.mjs","test":"node --test","check":"node --check public/app.js && node --check api/parse.js"},"engines":{"node":">=22"}}

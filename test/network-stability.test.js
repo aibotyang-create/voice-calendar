@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {networkLayout} from '../public/network-map.js';
+const people=[{id:'a',name:'가',category:'대표',strength:1,tags:['학교','모임']},{id:'b',name:'나',category:'멘토',strength:5,tags:[]},{id:'c',name:'다',category:'대표',strength:3,tags:['학교']}];
+const positions=view=>Object.fromEntries(view.nodes.map(n=>[(n.group.name||'root')+':'+n.person.id,[n.x,n.y]]));
+test('중요도와 서버 반환 순서가 바뀌어도 전체 지도 좌표는 유지되고 원 크기만 바뀐다',()=>{const first=networkLayout(people),changed=networkLayout([...people].reverse().map(p=>({...p,strength:p.id==='a'?5:1})));assert.deepEqual(positions(changed),positions(first));assert.deepEqual(changed.groups.map(g=>[g.name,g.x,g.y]),first.groups.map(g=>[g.name,g.x,g.y]));assert.ok(changed.nodes.find(n=>n.person.id==='a').radius>first.nodes.find(n=>n.person.id==='a').radius);});
+test('하위 태그에 중복 표시되는 사람도 중요도 변경시 각 가지의 좌표를 유지한다',()=>{const first=networkLayout(people,[],{category:'대표'}),changed=networkLayout([...people].reverse().map(p=>({...p,strength:6-p.strength})),[],{category:'대표'});assert.deepEqual(positions(changed),positions(first));assert.equal(first.nodes.filter(n=>n.person.id==='a').length,2);});
+test('표시 인원 제한을 넘겨도 중요도 변경이 기존 사람을 교체하지 않는다',()=>{const many=Array.from({length:70},(_,i)=>({id:String(i).padStart(3,'0'),name:'사람'+i,category:'지인',strength:1}));const changed=many.map(p=>({...p,strength:5}));assert.deepEqual(positions(networkLayout(changed)),positions(networkLayout(many)));});

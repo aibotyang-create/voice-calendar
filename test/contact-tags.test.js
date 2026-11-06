@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {networkLayout,filterNetwork} from '../public/network-map.js';
+import {cleanContact} from '../public/people-data.js';
+const a={id:'a',name:'명진혁',category:'지인',strength:3,tags:['고등학교','대학교']},b={id:'b',name:'김민수',category:'지인',strength:2,tags:['고등학교']};
+test('카테고리 선택시에만 태그 가지를 만들고 여러 태그의 인맥은 같은 ID로 각각 연결한다',()=>{const all=networkLayout([a,b]);assert.deepEqual(all.groups.map(g=>g.name),['지인']);assert.equal(all.nodes.length,2);const scoped=networkLayout([a,b],[],{category:'지인'});assert.deepEqual(scoped.groups.map(g=>g.name),['고등학교','대학교']);assert.equal(scoped.root.x,120);const duplicates=scoped.nodes.filter(n=>n.person.id==='a');assert.equal(duplicates.length,2);assert.equal(duplicates[0].person,duplicates[1].person);assert.notEqual(duplicates[0].group.name,duplicates[1].group.name);});
+test('선택한 하위 태그는 사람과 지도 가지를 함께 필터하고 미지정 태그도 보존한다',()=>{const filtered=filterNetwork([a,b],{category:'지인',tag:'대학교'});assert.deepEqual(filtered.map(p=>p.id),['a']);const view=networkLayout(filtered,[],{category:'지인',tag:'대학교'});assert.deepEqual(view.groups.map(g=>g.name),['대학교']);assert.equal(view.nodes.length,1);assert.equal(networkLayout([{...a,tags:[]}],[],{category:'지인'}).groups[0].name,'태그 없음');});
+test('태그는 공백·중복을 정리하고 최대 20개, 각 40자로 제한한다',()=>{assert.deepEqual(cleanContact({...a,tags:[' 대학교 ','대학교','','고등학교']}).tags,['대학교','고등학교']);assert.equal(cleanContact({...a,tags:Array.from({length:25},(_,i)=>String(i))}).tags.length,20);assert.equal(cleanContact({...a,tags:['a'.repeat(60)]}).tags[0].length,40);assert.deepEqual(cleanContact({name:'기존 인맥'}).tags,[]);});
+test('직접 만든 카테고리까지 모두 동일한 하위 태그 연결을 지원한다',()=>{for(const category of ['멘토','투자','친구','새 카테고리']){const person={...a,category};const view=networkLayout([person],[],{category});assert.equal(view.nodes.length,2);assert.deepEqual(view.groups.map(g=>g.name),['고등학교','대학교']);assert.ok(view.nodes.every(n=>n.person.id==='a'));}});

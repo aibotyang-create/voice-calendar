@@ -103,7 +103,7 @@ function renderCalendar(){
   if(!shown.length) $('eventList').append(el('p','empty-note',authenticated()?'표시할 일정이 없어요. 위에서 새 일정을 등록해보세요.':'Google 계정을 연결해주세요.'));
   for(const {event:e} of shown){
     const row=el('article','event-row'),date=e.start.date||seoulDay(e.start.dateTime),time=e.start.date?'종일':new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'numeric',minute:'2-digit'}).format(new Date(e.start.dateTime));
-    row.append(el('div','event-time',date.slice(5).replace('-','/')+'\n'+time));const body=el('div','event-body');const link=el('a','event-name',e.summary||'이름 없는 일정');link.href=calendarUrl(e.htmlLink);link.target='_blank';link.rel='noopener noreferrer';body.append(link);if(e.location)body.append(el('p','event-location',e.location));if(e.extendedProperties?.private?.source==='malhae-calendar')body.append(el('span','person-tag','말해에서 등록'));row.append(body);$('eventList').append(row);
+    row.append(el('div','event-time',date.slice(5).replace('-','/')+'\n'+time));const body=el('div','event-body');const link=el('a','event-name',e.summary||'이름 없는 일정');link.href=calendarUrl(e.htmlLink);link.target='_blank';link.rel='noopener noreferrer';body.append(link);if(e.location)body.append(el('p','event-location',e.location));if(e.extendedProperties?.private?.source==='malhae-calendar')body.append(el('span','person-tag','AI-calendar에서 등록'));row.append(body);$('eventList').append(row);
   }
 }
 async function loadCalendar(){

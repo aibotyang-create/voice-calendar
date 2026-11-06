@@ -9,11 +9,12 @@ service cloud.firestore {
     match /users/{uid}/contacts/{contactId} {
       allow read: if owner(uid);
       allow create, update: if owner(uid)
-        && request.resource.data.keys().hasOnly(['name','company','title','category','strength','lastContact','notes','focus','followup','email','phone','archived','updatedAt'])
+        && request.resource.data.keys().hasOnly(['name','company','title','category','color','strength','lastContact','notes','focus','followup','email','phone','archived','updatedAt'])
         && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
         && request.resource.data.company is string && request.resource.data.company.size() <= 200
         && request.resource.data.title is string && request.resource.data.title.size() <= 100
-        && request.resource.data.category in ['고객','파트너','투자자','지인']
+        && request.resource.data.category is string && request.resource.data.category.size() > 0 && request.resource.data.category.size() <= 40
+        && (!('color' in request.resource.data) || request.resource.data.color == '' || request.resource.data.color.matches('^#[0-9a-fA-F]{6}$'))
         && request.resource.data.strength is int && request.resource.data.strength >= 1 && request.resource.data.strength <= 5
         && request.resource.data.lastContact is string && request.resource.data.lastContact.size() <= 10
         && request.resource.data.notes is string && request.resource.data.notes.size() <= 4000
@@ -31,6 +32,25 @@ service cloud.firestore {
         && request.resource.data.eventId is string && request.resource.data.eventId.size() <= 1024
         && request.resource.data.label is string && request.resource.data.label.size() <= 1000
         && request.resource.data.done is bool && request.resource.data.updatedAt == request.time;
+    }
+    match /users/{uid}/categories/{categoryId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['name','color','updatedAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.name != '전체'
+        && request.resource.data.color is string && request.resource.data.color.matches('^#[0-9a-fA-F]{6}$')
+        && request.resource.data.updatedAt == request.time;
+    }
+    match /users/{uid}/todos/{todoId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['date','text','done','archived','createdAt','updatedAt'])
+        && request.resource.data.date is string && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 300
+        && request.resource.data.done is bool && request.resource.data.archived is bool
+        && request.resource.data.createdAt is int
+        && request.resource.data.updatedAt == request.time;
     }
   }
 }

@@ -2,7 +2,7 @@ import {categoryOptions,contactAge} from './people-data.js';
 import {seoulDay} from './calendar.js';
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 export function refineContactEditor({drawer,getData}){
- const $=id=>document.getElementById(id),form=$('personForm'),identity=form.querySelector('.profile-identity'),grid=form.querySelector('.profile-details-grid'),today=()=>seoulDay(Date.now());drawer.classList.add('refined-contact-editor','contact-v2');identity.append($('closePerson'));form.querySelector('.agenda-heading').hidden=true;
+ const $=id=>document.getElementById(id),form=$('personForm'),identity=form.querySelector('.profile-identity'),grid=form.querySelector('.profile-details-grid'),today=()=>seoulDay(Date.now());drawer.classList.add('refined-contact-editor','contact-v2');identity.querySelector('.profile-avatar')?.remove();identity.append($('closePerson'));form.querySelector('.agenda-heading').hidden=true;
  const relation=form.querySelector('.profile-relationship');relation.hidden=true;
  const recent=el('label','contact-recent','최근 연락·만남'),age=el('span','contact-since');recent.append($('pLastContact'),age);identity.after(recent);
  const category=el('div','contact-category-block'),categoryTitle=el('span','contact-field-title','카테고리'),chips=el('div','relationship-options');recent.after(category);category.append(categoryTitle,chips,$('pCategory'));$('pCategory').hidden=true;
@@ -19,6 +19,7 @@ export function refineContactEditor({drawer,getData}){
  for(const label of grid.querySelectorAll('label'))if(!label.querySelector('input,select,textarea'))label.remove();
  for(const id of ['pName','pPhone','pEmail'])$(id).closest('label').classList.add('contact-full-field');
  const extra=el('details','contact-extra-fields'),extraGrid=el('div','profile-details-grid');extra.append(el('summary','','만난 자리 · 등록일 · 추가 정보'),extraGrid);basic.after(extra);for(const id of ['pMetAt','pRegisteredOn','pSns','pAddress'])extraGrid.append($(id).closest('label'));
+ const primary=el('div','contact-basic-fields');basic.prepend(el('h3','','기본 정보'),primary);primary.append($('pName').closest('label'),category,tagSection,strength,$('pPhone').closest('label'),$('pEmail').closest('label'));
  const placeholders={pName:'이름을 입력하세요',pCompany:'회사 또는 기관',pTitle:'예: 대표, 팀장',pPhone:'010-1234-5678',pEmail:'name@company.com',pMetAt:'예: 창업 캠프, 강남 카페',pSns:'SNS 계정 또는 링크',pAddress:'주소'};for(const [id,text]of Object.entries(placeholders))$(id).placeholder=text;
  let refreshRecords=[];
  function lineRecords(field,title,task=false){const source=$(field),old=source.closest('label'),section=el('section','contact-record-section'),head=el('div','contact-record-heading'),add=el('button','','＋ 추가'),list=el('div','contact-record-list');add.type='button';head.append(el('h3','',title),add);section.append(head,list);old.before(section);old.hidden=true;

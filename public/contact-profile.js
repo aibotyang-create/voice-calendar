@@ -1,7 +1,8 @@
 import {refineContactEditor} from './contact-editor-ui.js';
 import {seoulDay} from './calendar.js';
 export const relationships=['멘토','대표','투자','지인','친구'];
-export function filterContactDetails(people,{place='',registered=''}={}){return people.filter(p=>(!place||String(p.metAt||'').split(/[,;\n]/).map(x=>x.trim()).includes(place))&&(!registered||p.registeredOn===registered));}
+export function filterContactDetails(people,{place='',registered='',registeredYear='',registeredPeriod=''}={}){return people.filter(p=>(!place||String(p.metAt||'').split(/[,;\n]/).map(x=>x.trim()).includes(place))&&(!registered||p.registeredOn===registered)&&matchesRegistration(p.registeredOn,registeredYear,registeredPeriod));}
+export function matchesRegistration(date,year='',period=''){if(!year&&!period)return true;if(!/^\d{4}-\d\d-\d\d$/.test(date||''))return false;const month=Number(date.slice(5,7));if(month<1||month>12||year&&date.slice(0,4)!==year)return false;if(!period)return true;if(period==='half1')return month<=6;if(period==='half2')return month>=6;return month===Number(period);}
 export function priorityPeople(people,choice='highest'){const max=Math.max(0,...people.map(p=>Number(p.strength)||2));return people.filter(p=>choice==='all'||Number(p.strength)===(choice==='highest'?max:Number(choice))).sort((a,b)=>(a.lastContact||'').localeCompare(b.lastContact||'')||a.name.localeCompare(b.name));}
 export function initContactProfile({drawer,getData}){
   const $=id=>document.getElementById(id),form=$('personForm');drawer.classList.add('profile-drawer');

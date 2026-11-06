@@ -13,6 +13,7 @@ export function cleanContact(input,options=defaultCategories){
   for(const key of ['sns','metAt','registeredOn','relationship'])if(!out[key])delete out[key];
   out.category=normalizedCategory(input.category??'지인',options);out.color=/^#[0-9a-f]{6}$/i.test(input.color||'')?input.color:'';out.strength=Math.max(1,Math.min(5,Number.parseInt(input.strength)||2));out.archived=Boolean(input.archived);
   out.tags=[...new Set((Array.isArray(input.tags)?input.tags:[]).map(t=>String(t).trim().slice(0,40)).filter(Boolean))].slice(0,20);
+  const intro=String(input.intro||'').replace(/[\r\n]+/g,' ').trim().slice(0,200);if(intro)out.intro=intro;
   return out;
 }
 export function matchPeople(event,contacts){

@@ -1,3 +1,4 @@
+import {authenticateStore} from './google-session.js';
 export async function prepareStore(config){
   if(!config) throw Error('Firebase 설정 전이에요. 설정 안내에 따라 FIREBASE_WEB_CONFIG를 추가해주세요.');
   const [app,auth,fs]=await Promise.all([
@@ -7,9 +8,8 @@ export async function prepareStore(config){
   ]);
   const firebase=app.getApps().length?app.getApp():app.initializeApp(config);
   const session=auth.getAuth(firebase);await auth.setPersistence(session,auth.inMemoryPersistence);
-  return {connect:async(onData,onError)=>{
-  const provider=new auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
-  const user=(await auth.signInWithPopup(session,provider)).user;
+  return {signOut:()=>auth.signOut(session),connect:async(onData,onError,accessToken)=>{
+  const user=await authenticateStore(auth,session,accessToken);
   const db=fs.getFirestore(firebase),root=['users',user.uid];let contacts=[],tasks=[],categories=[],todos=[];
   const report=()=>onData(contacts,tasks,categories,todos);
   const offContacts=fs.onSnapshot(fs.query(fs.collection(db,...root,'contacts'),fs.limit(500)),snapshot=>{contacts=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));report();},onError);
@@ -34,7 +34,7 @@ export async function prepareStore(config){
     deleteContact:async(id)=>{await fs.updateDoc(fs.doc(db,...root,'contacts',id),{archived:true,updatedAt:fs.serverTimestamp()});},
     watchConversations:(contactId,onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'conversations'),fs.where('contactId','==',contactId),fs.limit(300)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
     conversation:async(entry,lastContact)=>{const {id,...data}=entry,batch=fs.writeBatch(db);batch.set(fs.doc(db,...root,'conversations',id),{...data,updatedAt:fs.serverTimestamp()});batch.update(fs.doc(db,...root,'contacts',entry.contactId),{lastContact,updatedAt:fs.serverTimestamp()});await batch.commit();},
-    close:()=>{offContacts();offTasks();offCategories();offTodos();auth.signOut(session).catch(()=>{});}
+    close:(signOut=false)=>{offContacts();offTasks();offCategories();offTodos();if(signOut)auth.signOut(session).catch(()=>{});}
   };
   }};
 }

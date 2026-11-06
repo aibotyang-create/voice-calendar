@@ -34,9 +34,9 @@
 1. Firebase 콘솔에서 **Authentication → 시작하기 → 로그인 방법(Sign-in method) → Google**을 켭니다.
 2. 프로젝트 지원 이메일을 선택하고 저장합니다.
 3. **Authentication → 설정 → 승인된 도메인(Authorized domains)**에 `voice-calendar-rose.vercel.app`을 추가합니다.
-4. 앱의 **인맥 저장소 연결**을 눌러 `qaz73700@gmail.com`으로 로그인합니다.
+4. 앱 상단의 **Google로 로그인**을 눌러 `qaz73700@gmail.com`을 선택하고 캘린더 권한을 허용합니다. 같은 Google 액세스 토큰으로 Firebase도 자동 로그인됩니다.
 
-캘린더 OAuth와 Firebase는 서로 다른 프로젝트입니다. Firebase는 Firebase 프로젝트의 Google 로그인 팝업을 사용하며, 캘린더 연결은 기존 Google OAuth를 그대로 사용합니다. 앱 상단에서 Google 캘린더를 연결하고 인맥 섹션에서 저장소를 연결하면 두 기능을 함께 쓸 수 있습니다. 새로고침 후 다시 연결해야 합니다.
+캘린더 OAuth와 Firebase는 서로 다른 프로젝트이지만 로그인 흐름은 하나입니다. Google Identity Services에서 받은 액세스 토큰으로 `GoogleAuthProvider.credential(null, accessToken)`을 만들고 `signInWithCredential`로 Firebase에 로그인하므로 별도 계정 선택 팝업을 열지 않습니다. 기존 Google 계정의 Firebase UID와 저장된 데이터는 그대로 사용합니다. 저장소 연결만 실패하면 같은 토큰으로 동기화를 다시 시도하며, 새로고침이나 토큰 만료 후에는 한 번의 Google 로그인을 다시 실행합니다. 로그아웃 시 양쪽 연결을 해제합니다.
 
 ## 2. Firestore 만들기
 

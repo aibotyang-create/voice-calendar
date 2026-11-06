@@ -4,7 +4,7 @@ import {initEventEditor,buildManualEvent} from './event-editor.js';
 import {pastelColor} from './workspace-utils.js';
 const $=id=>document.getElementById(id);
 let config={},token='',expires=0,busy=false,history=[],draft=null,saved=null,recognition=null,listening=false;
-const scope='openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly';
+const scope='openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly https://www.googleapis.com/auth/drive.file';
 const status=s=>$('status').textContent=s;
 const authenticated=()=>token&&Date.now()<expires;
 function lock(value){busy=value;for(const id of ['submit','mic','save','discard','another','undo','connect']) $(id).disabled=value;$('mic').disabled=value||!recognition;}
@@ -22,7 +22,7 @@ $('connect').onclick=()=>{
   if(!window.google?.accounts?.oauth2){status('Google 연결 모듈을 불러오는 중이에요. 잠시 후 다시 눌러주세요.');return;}
   const client=google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope,
     callback:async r=>{if(r.error){status('Google 연결이 완료되지 않았어요. 다시 시도해주세요.');return;}
-      if(!google.accounts.oauth2.hasGrantedAllScopes(r,...scope.split(' '))){status('캘린더 권한을 허용해야 등록할 수 있어요.');return;}
+      if(!google.accounts.oauth2.hasGrantedAllScopes(r,...scope.split(' '))){status('캘린더와 보관함(Drive) 권한을 모두 허용해주세요.');return;}
       token=r.access_token;expires=Date.now()+(Number(r.expires_in)-60)*1000;$('connect').textContent='✓ Google 로그인됨';status('같은 계정으로 캘린더와 인맥 저장소를 연결하고 있어요…');calendarEvents=[];renderCalendar();loadCalendar();people.connect();try{await people.connectStore(token);status('캘린더와 인맥 저장소가 같은 Google 계정으로 연결됐어요.');}catch(e){status('캘린더는 연결됐지만 인맥 저장소 연결에 실패했어요. '+e.message+' · 상단의 저장소 동기화 다시 시도를 눌러주세요.');}},
     error_callback:()=>status('연결 창이 닫혔어요. 팝업을 허용하고 다시 연결해주세요.')});
   client.requestAccessToken();

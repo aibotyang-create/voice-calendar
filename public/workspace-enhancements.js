@@ -1,3 +1,4 @@
+import {initVault} from './vault.js';
 import {filterContactDetails,priorityPeople} from './contact-profile.js';
 import {fixedColor} from './planner-data.js';
 import {initPlanner} from './planner.js';
@@ -9,7 +10,7 @@ import {bindVoiceInput} from './voice.js';
 const make=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 export function initWorkspaceEnhancements({getData,openPerson,navigate,refreshUi,onQuickEvent,errorMessage}){
   const $=id=>document.getElementById(id),today=()=>seoulDay(Date.now());
-  let planner=null;
+  let planner=null,vault=null;
   let session=null,todayLoaded=false,todayTodos=[],offToday=()=>{},offNote=()=>{},offTalk=()=>{},noteDate='',noteDirty=false,noteTimer=null,noteRevision=0,notePending=null,noteFlight=null,personId='',todaySubscription='',currentPage='overview',quickMode='todo',quickHistory=[],quickId='',quickBusy=false,cameraStream=null,cardImage='',pendingConversation=null;
   const sidebar=document.querySelector('.sidebar');sidebar.id='mainSidebar';const toggle=make('button','nav-toggle','☰');toggle.type='button';toggle.setAttribute('aria-controls','mainSidebar');toggle.setAttribute('aria-label','사이드 메뉴 숨기기');document.querySelector('header').prepend(toggle);
   function setNav(hidden){sidebar.hidden=hidden;document.body.classList.toggle('nav-hidden',hidden);toggle.setAttribute('aria-expanded',String(!hidden));toggle.setAttribute('aria-label',hidden?'사이드 메뉴 열기':'사이드 메뉴 숨기기');try{localStorage.setItem('ai-calendar.nav-hidden',hidden?'1':'0');}catch{}}
@@ -93,6 +94,6 @@ export function initWorkspaceEnhancements({getData,openPerson,navigate,refreshUi
   new MutationObserver(()=>{enrichTodos();}).observe($('todoList'),{childList:true});
   function queueConversation(text,date){$('talkText').value=text;$('talkDate').value=date||today();if(/^\d{4}-\d\d-\d\d$/.test(date||'')){pendingConversation={id:crypto.randomUUID(),date,text:text.slice(0,4000),createdAt:Date.now()};$('personState').textContent='확인 후 저장하면 인맥 정보와 '+date+' 대화 기록을 함께 저장합니다.';}}
   async function afterPersonSave(id){if(!pendingConversation||!getData().store)return;const entry=pendingConversation;await getData().store.conversation({...entry,contactId:id},[getData().contacts.find(p=>p.id===id)?.lastContact||'',entry.date].sort().at(-1));pendingConversation=null;}
-  planner=initPlanner({getData,refreshUi,drawer,errorMessage});$('railImportance').onchange=renderMaps;
-  return {render:()=>{render();planner.render();},route,openPerson:p=>{bindTalks(p);planner.openPerson(p);},queueConversation,afterPersonSave};
+  planner=initPlanner({getData,refreshUi,drawer,errorMessage});vault=initVault({getData,onQuickEvent,refreshUi,navigate,errorMessage});$('railImportance').onchange=renderMaps;
+  return {render:()=>{render();planner.render();vault.render();},route,openPerson:p=>{bindTalks(p);planner.openPerson(p);},queueConversation,afterPersonSave};
 }

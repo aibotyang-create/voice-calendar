@@ -1,0 +1,14 @@
+# 보관함과 통합 AI 비서 설정
+
+파일 원본과 AI 생성 문서는 Google Drive의 `AI-calendar 보관함 / YYYY-MM-DD` 폴더에 저장합니다. Firebase Storage는 사용하지 않습니다. Firebase에는 문서 목록·날짜·관련 인맥·Drive 파일 ID와 분석용 텍스트를 저장합니다. Drive 기존 기본 저장 공간을 사용하며, 남은 용량을 초과하면 Google Drive 용량 확보가 필요합니다.
+
+1. 캘린더 OAuth 클라이언트가 있는 Google Cloud 프로젝트 `voice-calendar-513911`에서 Google Drive API를 사용 설정합니다: https://console.cloud.google.com/apis/library/drive.googleapis.com?project=voice-calendar-513911
+2. Google 인증 플랫폼 → 데이터 액세스에 `https://www.googleapis.com/auth/drive.file` 범위를 추가합니다. 앱에서 만든/선택한 파일만 접근하며 전체 Drive 읽기 범위는 요청하지 않습니다.
+3. Firebase → Firestore Database → 규칙에 최신 `firestore.rules` 전체를 붙여넣고 게시합니다. `users/{uid}/documents` 경로가 추가됐습니다. 기존 연락처·할 일 데이터는 삭제되지 않습니다.
+4. 앱을 새로고침하고 Google로 다시 로그인해서 Drive 권한까지 허용합니다.
+
+보관함의 날짜는 Google 캘린더와 독립적입니다. 날짜와 관련 인맥을 선택하고 원본 파일을 업로드할 수 있습니다. PDF·이미지·텍스트는 앱에서 미리보기, Office·한글 파일은 Drive 또는 내려받기로 열 수 있습니다. 원본 업로드 최대 20MB. AI에 파일 내용을 전달할 때는 선택/관련 자료 최대 6개·합계 약 2MB이며, 큰 파일·HWP/HWPX는 메타데이터만 사용하고 미분석 자료로 표시합니다. 분석하려면 짧은 PDF·텍스트를 함께 올립니다.
+
+대시보드 왼쪽 최상단 AI 비서에서 요청하면 할 일·인맥·일정·문서 작업으로 분류합니다. 명확한 작업은 자동 저장하고, 불명확한 날짜나 동명이인은 먼저 질문합니다. 예: `내일 김민수 투자사 미팅에서 쓸 아젠다와 질문지를 보관함의 소개서로 만들어줘.` AI 생성 문서는 Markdown(.md)으로 Drive와 보관함에 저장하고, 앱에서 열거나 내려받거나 인쇄→PDF로 저장할 수 있습니다. 자료가 부족하면 확인 필요 항목을 표시한 초안으로 생성하며, 근거 없이 수치나 약속을 만들지 않도록 요청합니다.
+
+이 기능은 요청할 때 실행됩니다. 앱을 닫은 동안 정해진 시간에 자동 생성하는 백그라운드 예약 기능은 포함하지 않습니다. Drive에 별도로 올린 기존 파일은 앱이 자동 탐색하지 않으며, 현재 보관함에서 업로드한 파일이 대상입니다. 계정 연결 후 실제 업로드·읽기·문서 생성의 최종 확인이 필요합니다.

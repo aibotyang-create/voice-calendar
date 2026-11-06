@@ -77,5 +77,24 @@ service cloud.firestore {
         && request.resource.data.createdAt is int
         && request.resource.data.updatedAt == request.time;
     }
+    match /users/{uid}/documents/{documentId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['title','filename','date','contactId','source','storagePath','driveFileId','driveViewLink','mime','size','content','sourceIds','createdAt','archived','updatedAt'])
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 180
+        && request.resource.data.filename is string && request.resource.data.filename.size() > 0 && request.resource.data.filename.size() <= 180
+        && request.resource.data.date is string && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.contactId is string && request.resource.data.contactId.size() <= 200
+        && request.resource.data.source in ['upload','generated']
+        && request.resource.data.storagePath == ''
+        && request.resource.data.driveFileId is string && request.resource.data.driveFileId.matches('^[-a-zA-Z0-9_]{10,200}$')
+        && request.resource.data.driveViewLink is string && request.resource.data.driveViewLink.size() <= 1000 && request.resource.data.driveViewLink.matches('^https://drive[.]google[.]com/.*$')
+        && request.resource.data.mime is string && request.resource.data.mime.size() <= 150
+        && request.resource.data.size is int && request.resource.data.size > 0 && request.resource.data.size <= 20971520
+        && request.resource.data.content is string && request.resource.data.content.size() <= 100000
+        && request.resource.data.sourceIds is list && request.resource.data.sourceIds.size() <= 6
+        && request.resource.data.createdAt is int && request.resource.data.archived is bool
+        && request.resource.data.updatedAt == request.time;
+    }
   }
 }

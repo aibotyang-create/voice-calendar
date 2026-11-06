@@ -87,7 +87,7 @@ export function initWorkspaceEnhancements({getData,openPerson,navigate,refreshUi
     const chosen=new Set(priorityPeople(visible,$('railImportance')?.value||'highest').map(p=>p.id));for(const row of $('peopleList').children){if(!row.classList.contains('person-row'))continue;row.hidden=!chosen.has(row.dataset.personId);}
     let empty=$('railEmpty');if(!empty){empty=make('p','empty-note');empty.id='railEmpty';document.querySelector('.relationship-rail').append(empty);}empty.textContent='해당 중요도의 인맥이 없어요.';empty.hidden=chosen.size>0||!data.store;
   }
-  function route(page){currentPage=page;if(page==='registration')mapHost.append(panel);else if(page==='people')peopleHost.append(panel);if(page!=='overview'&&quick.open)quick.close();renderMaps();}
+  function route(page){currentPage=page;if(page==='registration'){relationshipRail.classList.remove('people-top-rail','card');networkWorkspace.prepend(relationshipRail);mapHost.append(panel);}else if(page==='people'){relationshipRail.classList.add('people-top-rail','card');document.querySelector('.people-view').prepend(relationshipRail);peopleHost.append(panel);}if(page!=='overview'&&quick.open)quick.close();renderMaps();}
   function render(){bindStore();updateDateTabs();renderSummary();renderMaps();enrichTodos();if(noteDate!==$('todoDate').value)bindNote();}
   new MutationObserver(()=>{enrichTodos();}).observe($('todoList'),{childList:true});
   function queueConversation(text,date){$('talkText').value=text;$('talkDate').value=date||today();if(/^\d{4}-\d\d-\d\d$/.test(date||'')){pendingConversation={id:crypto.randomUUID(),date,text:text.slice(0,4000),createdAt:Date.now()};$('personState').textContent='확인 후 저장하면 인맥 정보와 '+date+' 대화 기록을 함께 저장합니다.';}}

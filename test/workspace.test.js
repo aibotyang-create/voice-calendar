@@ -8,9 +8,11 @@ test('시냅스 지도는 실제 카테고리로 가지를 만들고 중요도�
 });
 test('인맥 필터는 회사·카테고리·검색·중요도를 함께 적용한다',()=>{
   const people=[{name:'김민수',company:'ABC',title:'팀장',category:'대표',strength:5},{name:'박민수',company:'DEF',title:'이사',category:'대표',strength:2}];
-  assert.equal(filterNetwork(people,{query:'민수',company:'ABC',importance:4}).length,1);
+  assert.equal(filterNetwork(people,{query:'민수',company:'ABC',importance:5}).length,1);
 });
 test('날짜 탭은 월말·연말을 넘기고, 할 일을 기존 두 항목 사이에 삽입한다',()=>{
   assert.equal(shiftedDay('2026-12-31',1),'2027-01-01');assert.equal(shiftedDay('2026-11-01',-1),'2026-10-31');assert.deepEqual(insertTodoOrder([{id:'a'},{id:'b'}],'a','new'),['a','new','b']);assert.deepEqual(insertTodoOrder([{id:'a'}],null,'first'),['first','a']);
   assert.equal(pastelColor('#000000'),'#c7c7c7');assert.match(pastelColor('invalid'),/^#[0-9a-f]{6}$/);
 });
+
+test('중요도 필터는 선택한 숫자와 정확히 일치하는 인맥만 표시한다',()=>{const people=[1,2,3,4,5].map(strength=>({id:String(strength),name:'인맥',strength}));for(let importance=1;importance<=5;importance++)assert.deepEqual(filterNetwork(people,{importance:String(importance)}).map(p=>p.strength),[importance]);assert.equal(filterNetwork(people,{importance:0}).length,5);});

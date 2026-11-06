@@ -3,7 +3,7 @@ import {categoryOptions,contactColor,contactAge} from './people-data.js';
 const stablePersonOrder=(a,b)=>String(a.id||a.name).localeCompare(String(b.id||b.name));
 function rayPosition(group,angle,distance){const dx=Math.cos(angle),dy=Math.sin(angle),limits=[dx>0?(952-group.x)/dx:dx<0?(48-group.x)/dx:Infinity,dy>0?(592-group.y)/dy:dy<0?(48-group.y)/dy:Infinity],scale=Math.min(1,...limits.map(n=>n/184));return {x:group.x+dx*distance*scale,y:group.y+dy*distance*scale};}
 export function importanceDistance(strength,base=80){const value=Math.max(1,Math.min(5,Number(strength)||2));return base+(5-value)*24;}
-export function filterNetwork(people,{category='전체',query='',company='',importance=0,stale=false,tag=''}={}){return people.filter(p=>!p.archived&&(!tag||(p.tags||[]).includes(tag))&&(category==='전체'||p.category===category)&&(!company||p.company===company)&&p.strength>=Number(importance)&&(!stale||(contactAge(p.lastContact)??0)>=30)&&[p.name,p.company,p.title].join(' ').toLowerCase().includes(query.toLowerCase()));}
+export function filterNetwork(people,{category='전체',query='',company='',importance=0,stale=false,tag=''}={}){return people.filter(p=>!p.archived&&(!tag||(p.tags||[]).includes(tag))&&(category==='전체'||p.category===category)&&(!company||p.company===company)&&(!Number(importance)||Number(p.strength)===Number(importance))&&(!stale||(contactAge(p.lastContact)??0)>=30)&&[p.name,p.company,p.title].join(' ').toLowerCase().includes(query.toLowerCase()));}
 export function networkLayout(people,options=[],{category='전체',tag='',groupBy='category'}={}){
   if(groupBy!=='category')return groupedNetworkLayout(people,groupBy);
   if(category!=='전체')return taggedLayout(people,options,category,tag);

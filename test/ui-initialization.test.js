@@ -16,11 +16,11 @@ test('앱 초기화 뒤 메뉴별로 한 페이지만 보이고 대시보드 AI 
  initPeople({getToken:()=>'',googleApi:async()=>({ok:true,json:async()=>({items:[]})}),onSchedule(){},onQuickEvent(){}});
  const $=id=>document.getElementById(id);
  assert.equal(document.querySelectorAll('.workspace-view').length,6);
- assert.ok(document.querySelector('.overview-view .unified-assistant'));
+ assert.ok(document.querySelector('.overview-view .unified-assistant'));assert.equal($('railImportance').value,'all');assert.equal(document.querySelector('.relationship-rail h3').textContent,'중요한 분들');
  for(const [route,expected]of [['calendar','calendar'],['people','people'],['capture','registration'],['vault','vault'],['preparation','preparation'],['overview','overview']]){
   location.hash='#'+route;window.dispatchEvent(new Event('hashchange'));
   assert.deepEqual([...document.querySelectorAll('.workspace-view')].filter(v=>!v.hidden).map(v=>v.dataset.view),[expected]);
  }
- $('addPerson').click();assert.ok($('pTags'));assert.equal($('pCategory').isConnected,true);assert.equal($('pStrength').hidden,false);
+ $('addPerson').click();assert.ok($('pTags'));assert.equal($('pCategory').isConnected,true);assert.equal($('pStrength').hidden,false);assert.deepEqual([...document.querySelectorAll('.contact-category-block .relationship-options button')].map(b=>b.textContent),['대표','멘토','기관','지인','친구']);
  await new Promise(resolve=>queueMicrotask(resolve));
 });

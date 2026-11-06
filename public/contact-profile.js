@@ -10,6 +10,9 @@ export function initContactProfile({drawer,getData}){
   $('pCategory').closest('label').firstChild.textContent='카테고리';
   function field(id,title,max,type='text'){const label=document.createElement('label');label.className='profile-field';label.append(document.createTextNode(title));const input=document.createElement('input');input.id=id;input.type=type;if(max)input.maxLength=max;label.append(input);return label;}
   const registration=field('pRegisteredOn','등록일',10,'date'),place=field('pMetAt','만난 자리',300);place.querySelector('input').placeholder='예: 고객사 공장 방문, 창업 캠프';$('pPhone').closest('.two').after(registration,place);
+  const details=document.createElement('div');details.className='profile-details-grid';$('pName').closest('.two').before(details);
+  for(const id of ['pName','pCategory','pCompany','pTitle','pEmail','pPhone','pLastContact','pRegisteredOn','pSns','pMetAt','pAddress']){const label=$(id).closest('label');if(['pMetAt','pAddress'].includes(id))label.classList.add('profile-wide-field');details.append(label);}
+  for(const pair of form.querySelectorAll('.two'))if(!pair.children.length)pair.remove();
   function drawRelation(){for(const b of chips.children){b.classList.toggle('active',b.textContent===relation.value);b.setAttribute('aria-pressed',String(b.textContent===relation.value));}}
   function drawStars(){for(const [i,b]of [...stars.children].entries()){b.classList.toggle('selected',i<Number($('pStrength').value));b.setAttribute('aria-pressed',String(i+1===Number($('pStrength').value)));}}
   function title(){const name=$('pName').value.trim();avatar.textContent=name.slice(0,2)||'새';heading.textContent=name||'새로운 인맥';}$('pName').addEventListener('input',title);

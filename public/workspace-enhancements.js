@@ -19,6 +19,10 @@ export function initWorkspaceEnhancements({getData,openPerson,navigate,refreshUi
   stack.append(...registration.children);registration.append(stack,mapHost);document.querySelector('.people-view').append(peopleHost);
   const filters=make('div','network-extra-filters');filters.innerHTML='<label>중요도<select id="importanceFilter"><option value="0">모든 중요도</option><option value="4">중요도 4 이상</option><option value="5">가장 중요한 사람</option></select></label><label>회사<select id="companyFilter"><option value="">모든 회사</option></select></label><label class="network-stale"><input id="staleFilter" type="checkbox">30일 이상 연락 없음</label>';panel.querySelector('#peopleSearch').after(filters);for(const input of filters.querySelectorAll('input,select'))input.onchange=()=>renderMaps();
   panel.querySelector('.network-wrap').classList.add('synapse-map');panel.querySelector('.network-wrap+.calendar-note').textContent='나 → 카테고리 → 사람 · 원이 클수록 중요도가 높아요. 최대 60명 표시, 전체는 검색과 목록에서 확인할 수 있어요.';
+  const networkWorkspace=make('div','network-workspace'),relationshipRail=make('aside','relationship-rail'),networkCanvas=make('div','network-canvas');
+  relationshipRail.setAttribute('aria-label','챙겨볼 사람');relationshipRail.append(panel.querySelector('.agenda-list-heading'),$('peopleList'));
+  const mapSurface=panel.querySelector('.network-wrap'),mapCaption=mapSurface.nextElementSibling;
+  networkCanvas.append(mapSurface,mapCaption);networkWorkspace.append(relationshipRail,networkCanvas);panel.append(networkWorkspace);
   const strengthLabel=$('pStrength').closest('label');strengthLabel.firstChild.textContent='중요도';for(const option of $('pStrength').options)option.textContent=['','1 · 가볍게 연결','2 · 보통','3 · 중요','4 · 매우 중요','5 · 최우선'][Number(option.value)];
 
   // Contact editor is a non-modal right-hand drawer.

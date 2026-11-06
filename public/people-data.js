@@ -1,9 +1,11 @@
+export const categoryPalette=[['블루','#8ab4ff'],['라벤더','#b69cff'],['민트','#77d6be'],['살구','#ffbd8a'],['핑크','#f6a5c3'],['옐로','#f3d66c'],['스카이','#82d7ed'],['코랄','#f7a599'],['페리윙클','#9fa9f6'],['그린','#b2d78a']];
+export function categoryPaletteColor(color){const legacy={'#9daee4':'#8ab4ff','#e3b989':'#ffbd8a','#8fc5bc':'#77d6be','#b7a4d6':'#b69cff','#e4a8bb':'#f6a5c3'};if(legacy[color])return legacy[color];if(!/^#[0-9a-f]{6}$/i.test(color||''))return categoryPalette[0][1];const rgb=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)),a=rgb(color);return categoryPalette.map(([,c])=>({c,d:rgb(c).reduce((sum,n,i)=>sum+(n-a[i])**2,0)})).sort((a,b)=>a.d-b.d)[0].c;}
 export const categories=['대표','멘토','기관','지인','친구'];
-export const defaultCategories=categories.map((name,i)=>({id:'fixed-'+i,name,color:['#9daee4','#e3b989','#8fc5bc','#b7a4d6','#e4a8bb'][i]}));
+export const defaultCategories=categories.map((name,i)=>({id:'fixed-'+i,name,color:['#8ab4ff','#ffbd8a','#77d6be','#b69cff','#f6a5c3'][i]}));
 export function normalizedCategory(value,options=defaultCategories){const name=String(value||'').trim();return options.some(c=>c.name===name)?name:'';}
 export function dailyTodoItems(items,date){return items.filter(t=>!t.archived&&t.date===date).sort((a,b)=>(a.order??a.createdAt)-(b.order??b.createdAt)||a.createdAt-b.createdAt||a.id.localeCompare(b.id));}
 export function nextTodoOrder(items,date){return Math.max(0,...dailyTodoItems(items,date).map(t=>t.order??t.createdAt))+1;}
-export function categoryOptions(records=[]){const options=new Map(defaultCategories.map(c=>[c.id,{...c}]));for(const c of records)if(options.has(c.id)||c.id?.startsWith('user-'))options.set(c.id,{...c});return [...options.values()].filter(c=>c.name!=='__removed__');}
+export function categoryOptions(records=[]){const options=new Map(defaultCategories.map(c=>[c.id,{...c}]));for(const c of records)if(options.has(c.id)||c.id?.startsWith('user-'))options.set(c.id,{...c});return [...options.values()].filter(c=>c.name!=='__removed__').map(c=>({...c,color:categoryPaletteColor(c.color)}));}
 export function contactColor(contact,options=defaultCategories){return options.find(c=>c.name===normalizedCategory(contact.category,options))?.color||'#b7a4d6';}
 export function cleanContact(input,options=defaultCategories){
   const fields={name:100,company:200,title:100,lastContact:10,notes:4000,focus:1000,followup:1000,email:200,phone:100,address:500,sns:500,metAt:300,registeredOn:10,relationship:40};const out={};

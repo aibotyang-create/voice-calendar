@@ -1,6 +1,7 @@
 export const categories=['고객','파트너','투자자','지인'];
 export const defaultCategories=categories.map((name,i)=>({id:'default-'+i,name,color:['#7564d9','#309b86','#c98c4c','#8192b6'][i]}));
-export function dailyTodoItems(items,date){return items.filter(t=>!t.archived&&t.date===date).sort((a,b)=>a.createdAt-b.createdAt);}
+export function dailyTodoItems(items,date){return items.filter(t=>!t.archived&&t.date===date).sort((a,b)=>(a.order??a.createdAt)-(b.order??b.createdAt)||a.createdAt-b.createdAt||a.id.localeCompare(b.id));}
+export function nextTodoOrder(items,date){return Math.max(0,...dailyTodoItems(items,date).map(t=>t.order??t.createdAt))+1;}
 export function categoryOptions(records=[],contacts=[]){const byId=new Map(defaultCategories.map(c=>[c.id,c]));for(const c of records)byId.set(c.id,c);const byName=new Map([...byId.values()].map(c=>[c.name,c]));for(const p of contacts)if(p.category&&!byName.has(p.category))byName.set(p.category,{id:'legacy-'+p.category,name:p.category,color:'#8192b6'});return [...byName.values()];}
 export function contactColor(contact,options=defaultCategories){return /^#[0-9a-f]{6}$/i.test(contact.color||'')?contact.color:(options.find(c=>c.name===contact.category)?.color||'#8192b6');}
 export function cleanContact(input){

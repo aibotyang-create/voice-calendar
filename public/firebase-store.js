@@ -22,6 +22,7 @@ export async function prepareStore(config){
     category:async(category,previousName,people=[])=>{const changed=people.filter(p=>previousName&&previousName!==category.name&&p.category===previousName);if(changed.length>499)throw Error('한 번에 변경할 수 있는 인맥 수를 초과했어요.');const batch=fs.writeBatch(db);const {id,...data}=category;batch.set(fs.doc(db,...root,'categories',id),{...data,updatedAt:fs.serverTimestamp()});for(const p of changed)batch.update(fs.doc(db,...root,'contacts',p.id),{category:category.name,updatedAt:fs.serverTimestamp()});await batch.commit();},
     watchDay:day=>{if(day===activeDay)return;activeDay=day;offTodos();todos=[];report();offTodos=fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('date','==',day),fs.limit(300)),snapshot=>{if(day!==activeDay)return;todos=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));report();},onError);},
     todo:async todo=>{const {id,...data}=todo;await fs.setDoc(fs.doc(db,...root,'todos',id),{...data,updatedAt:fs.serverTimestamp()});},
+    reorderTodos:async ids=>{if(ids.length>300||new Set(ids).size!==ids.length)throw Error('할 일 순서를 확인해주세요.');const batch=fs.writeBatch(db);ids.forEach((id,order)=>batch.update(fs.doc(db,...root,'todos',id),{order,updatedAt:fs.serverTimestamp()}));await batch.commit();},
     close:()=>{offContacts();offTasks();offCategories();offTodos();auth.signOut(session).catch(()=>{});}
   };
   }};

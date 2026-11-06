@@ -13,3 +13,6 @@ export function eventDays(event){
   return days;
 }
 export function calendarUrl(value){try{const url=new URL(value);if(url.protocol==='https:'&&['www.google.com','calendar.google.com'].includes(url.hostname)) return url.href;}catch{}return 'https://calendar.google.com/';}
+export function resolveEventColor(event,palette={},calendarColor={}){
+  const chosen=palette[event.colorId]||calendarColor;const valid=v=>/^#[0-9a-f]{6}$/i.test(v||'');const background=valid(chosen.background)?chosen.background:'#e5def6';const foreground=valid(chosen.foreground)?chosen.foreground:'#493964';return {background,foreground};
+}

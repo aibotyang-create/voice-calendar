@@ -1,3 +1,4 @@
+import {refineContactEditor} from './contact-editor-ui.js';
 import {seoulDay} from './calendar.js';
 export const relationships=['멘토','대표','투자','지인','친구'];
 export function filterContactDetails(people,{place='',registered=''}={}){return people.filter(p=>(!place||String(p.metAt||'').split(/[,;\n]/).map(x=>x.trim()).includes(place))&&(!registered||p.registeredOn===registered));}
@@ -17,6 +18,7 @@ export function initContactProfile({drawer,getData}){
   function drawStars(){for(const [i,b]of [...stars.children].entries()){b.classList.toggle('selected',i<Number($('pStrength').value));b.setAttribute('aria-pressed',String(i+1===Number($('pStrength').value)));}}
   function title(){const name=$('pName').value.trim();avatar.textContent=name.slice(0,2)||'새';heading.textContent=name||'새로운 인맥';}$('pName').addEventListener('input',title);
   const picker=document.createElement('label');picker.className='rail-priority';picker.append(document.createTextNode('중요도'));const select=document.createElement('select');select.id='railImportance';for(const [v,t]of [['highest','가장 높은 중요도'],['5','★★★★★'],['4','★★★★'],['3','★★★'],['2','★★'],['1','★'],['all','전체']])select.add(new Option(t,v));picker.append(select);document.querySelector('.relationship-rail>.agenda-list-heading').after(picker);
-  function openPerson(p){relation.value=p.relationship||((relationships.includes(p.category))?p.category:'지인');$('pRegisteredOn').value=p.registeredOn||(!p.id?seoulDay(Date.now()):'');$('pRegisteredOn').readOnly=!!p.registeredOn;$('pMetAt').value=p.metAt||'';title();drawRelation();drawStars();}
+  const editorUi=refineContactEditor({drawer,getData});
+  function openPerson(p){relation.value=p.relationship||((relationships.includes(p.category))?p.category:'지인');$('pRegisteredOn').value=p.registeredOn||(!p.id?seoulDay(Date.now()):'');$('pRegisteredOn').readOnly=!!p.registeredOn;$('pMetAt').value=p.metAt||'';title();drawRelation();drawStars();editorUi.openPerson(p);}
   return {openPerson};
 }

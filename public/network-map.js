@@ -1,12 +1,14 @@
 import {edgeBetween,fixedColor} from './planner-data.js';
 import {categoryOptions,contactColor,contactAge} from './people-data.js';
 const stablePersonOrder=(a,b)=>String(a.id||a.name).localeCompare(String(b.id||b.name));
+function rayPosition(group,angle,distance){const dx=Math.cos(angle),dy=Math.sin(angle),limits=[dx>0?(952-group.x)/dx:dx<0?(48-group.x)/dx:Infinity,dy>0?(592-group.y)/dy:dy<0?(48-group.y)/dy:Infinity],scale=Math.min(1,...limits.map(n=>n/184));return {x:group.x+dx*distance*scale,y:group.y+dy*distance*scale};}
+export function importanceDistance(strength,base=80){const value=Math.max(1,Math.min(5,Number(strength)||2));return base+(5-value)*24;}
 export function filterNetwork(people,{category='전체',query='',company='',importance=0,stale=false,tag=''}={}){return people.filter(p=>!p.archived&&(!tag||(p.tags||[]).includes(tag))&&(category==='전체'||p.category===category)&&(!company||p.company===company)&&p.strength>=Number(importance)&&(!stale||(contactAge(p.lastContact)??0)>=30)&&[p.name,p.company,p.title].join(' ').toLowerCase().includes(query.toLowerCase()));}
 export function networkLayout(people,options=[],{category='전체',tag=''}={}){
   if(category!=='전체')return taggedLayout(people,options,category,tag);
   const selected=people.slice().sort(stablePersonOrder).slice(0,60),names=(options.length?options:categoryOptions()).map(c=>c.name).filter(name=>selected.some(p=>p.category===name));
   const groups=names.map((name,i)=>{const angle=-Math.PI/2+(i+.25)*Math.PI*2/Math.max(names.length,1);return {name,x:500+Math.cos(angle)*245,y:320+Math.sin(angle)*170,color:options.find(o=>o.name===name)?.color||'#8192b6',angle};});
-  const nodes=[];for(const group of groups){const members=selected.filter(p=>p.category===group.name);members.forEach((person,i)=>{const spread=members.length===1?0:(i/(members.length-1)-.5)*2.4;const angle=group.angle+spread,r=85+(i%3)*29;nodes.push({person,x:Math.max(48,Math.min(952,group.x+Math.cos(angle)*r)),y:Math.max(48,Math.min(592,group.y+Math.sin(angle)*r)),radius:12+Number(person.strength)*3.5,group});});}
+  const nodes=[];for(const group of groups){const members=selected.filter(p=>p.category===group.name);members.forEach((person,i)=>{const spread=members.length===1?0:(i/(members.length-1)-.5)*2.4;const angle=group.angle+spread,r=importanceDistance(person.strength)+(i%3)*4;nodes.push({person,...rayPosition(group,angle,r),radius:12+Number(person.strength)*3.5,group});});}
   const root={x:500,y:320,color:'#a1b6db',direct:true};selected.filter(p=>!names.includes(p.category)).forEach((person,i)=>nodes.push({person,group:root,x:280+(i%5)*110,y:510+Math.floor(i/5)*65,radius:12+Number(person.strength)*3.5}));
   return {groups,nodes};
 }
@@ -24,7 +26,7 @@ export function taggedLayout(people,options,category,tag=''){
  const selected=people.filter(p=>p.category===category).sort(stablePersonOrder).slice(0,60),color=options.find(c=>c.name===category)?.color||'#8192b6';
  const names=[...new Set(selected.flatMap(p=>p.tags||[]))].filter(name=>!tag||name===tag).sort();
  const groups=names.map((name,i)=>({name,color,x:370,y:70+(i+.5)*500/Math.max(1,names.length)})),nodes=[];
- for(const group of groups){const members=selected.filter(p=>(p.tags||[]).includes(group.name)),band=500/Math.max(1,groups.length);members.forEach((person,i)=>{const col=i%4,row=Math.floor(i/4),rows=Math.ceil(members.length/4);nodes.push({person,group,x:540+col*125,y:Math.max(35,Math.min(605,group.y+(row-(rows-1)/2)*Math.min(80,band/Math.max(1,rows)))),radius:12+Number(person.strength)*3.5});});}
+ for(const group of groups){const members=selected.filter(p=>(p.tags||[]).includes(group.name)),band=500/Math.max(1,groups.length);members.forEach((person,i)=>{const distance=importanceDistance(person.strength,100)+(i%3)*4,maxAngle=Math.min(.75,Math.asin(Math.min(1,(group.y-35)/204)),Math.asin(Math.min(1,(605-group.y)/204))),angle=members.length===1?0:(i/(members.length-1)-.5)*2*maxAngle;nodes.push({person,group,x:group.x+Math.cos(angle)*distance,y:group.y+Math.sin(angle)*distance,radius:12+Number(person.strength)*3.5});});}
  const root={x:120,y:320,color};if(!tag){const untagged=selected.filter(p=>!p.tags?.length);untagged.forEach((person,i)=>nodes.push({person,group:root,x:groups.length?240+(i%3)*95:370+(i%4)*150,y:groups.length?540+Math.floor(i/3)*44:110+Math.floor(i/4)*100,radius:12+Number(person.strength)*3.5}));}
  return {root,groups,nodes};
 }

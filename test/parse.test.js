@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler,{validateEvent} from '../api/parse.js';
+import handler,{validateEvent,aiError} from '../api/parse.js';
+test('AI 키, 크레딧, 요청 제한, 모델 오류를 구분하고 원문은 노출하지 않는다',()=>{
+  assert.match(aiError(401,{message:'secret'}),/401/);
+  assert.match(aiError(429,{code:'insufficient_quota'}),/insufficient_quota/);
+  assert.match(aiError(429),/429/);
+  assert.match(aiError(404,{code:'model_not_found'}),/model_not_found/);
+  assert.ok(!aiError(400,{message:'secret'}).includes('secret'));
+});
 const event={title:'팀 미팅',start:'2030-06-12T15:00:00+09:00',end:'2030-06-12T16:00:00+09:00',location:'강남',description:'',reminderMinutes:30,question:null};
 test('완전한 일정과 추가 질문을 구별한다',()=>{
   assert.equal(validateEvent(event).title,'팀 미팅');

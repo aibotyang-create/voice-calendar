@@ -1,3 +1,4 @@
+import {mergeImportedContact} from './contact-import.js';
 import {createVaultStore} from './vault-store.js';
 import {authenticateStore} from './google-session.js';
 export async function prepareStore(config){
@@ -20,6 +21,7 @@ export async function prepareStore(config){
   return {
     ...createVaultStore(fs,db,root,accessToken),
     save:async contact=>{const {id,...data}=contact;if(!data.tags?.length)delete data.tags;await fs.setDoc(fs.doc(db,...root,'contacts',id),{...data,updatedAt:fs.serverTimestamp()});},
+    saveContactImport:async entries=>{if(!entries.length||entries.length>20)throw Error('한 번에 1~20명의 인맥을 등록할 수 있어요.');await fs.runTransaction(db,async transaction=>{const refs=entries.map(e=>fs.doc(db,...root,'contacts',e.id)),snapshots=await Promise.all(refs.map(ref=>transaction.get(ref)));for(let i=0;i<entries.length;i++){const entry=entries[i],data=mergeImportedContact(snapshots[i].exists()?snapshots[i].data():null,entry);if(!data.tags?.length)delete data.tags;transaction.set(refs[i],{...data,updatedAt:fs.serverTimestamp()});if(entry.changes.lastContact&&entry.changes.notes){transaction.set(fs.doc(db,...root,'conversations',entry.importId),{contactId:entry.id,date:entry.changes.lastContact,text:entry.changes.notes,createdAt:entry.createdAt,updatedAt:fs.serverTimestamp()});}}});},
     patchContact:async(id,changes)=>{const data={...changes};if('tags' in data&&!data.tags?.length)data.tags=fs.deleteField();await fs.updateDoc(fs.doc(db,...root,'contacts',id),{...data,updatedAt:fs.serverTimestamp()});},
     task:async(id,eventId,label,done)=>fs.setDoc(fs.doc(db,...root,'tasks',id),{eventId,label,done,updatedAt:fs.serverTimestamp()}),
     category:async(category,previousName,people=[])=>{const changed=people.filter(p=>previousName&&previousName!==category.name&&p.category===previousName);if(changed.length>499)throw Error('한 번에 변경할 수 있는 인맥 수를 초과했어요.');const batch=fs.writeBatch(db);const {id,...data}=category;batch.set(fs.doc(db,...root,'categories',id),{...data,updatedAt:fs.serverTimestamp()});for(const p of changed)batch.update(fs.doc(db,...root,'contacts',p.id),{category:category.name,updatedAt:fs.serverTimestamp()});await batch.commit();},

@@ -92,3 +92,79 @@
 .refined-contact-editor #personState{color:#8595ad}
 .refined-contact-editor #pRegisteredOn[readonly]{background:#eef3fa;color:#8396ad!important}
 .refined-contact-editor .contact-delete-area{border-color:#e0e8f3}
+/* AI-calendar visual system: graphite, clear blue and warm paper. */
+:root{--accent:#2563eb;--accent-soft:#edf4ff;--ink:#182432;--muted:#687789;--line:#e3e9ef;color:var(--ink);background:#f5f7fa}
+body{color:var(--ink);background:#f5f7fa;-webkit-font-smoothing:antialiased}
+header{background:#ffffffed;border-color:#e3e9ef;box-shadow:0 1px 0 #ffffff}
+h1,h2,h3,.agenda-heading h2{color:#1c2a3c;letter-spacing:-.6px}
+h1 span,.logo-dot{color:#2563eb}
+.eyebrow,.agenda-heading .eyebrow{color:#8391a3;letter-spacing:1.5px}
+.eyebrow>span,.workspace-dot{background:#3b82f6}
+.sidebar{background:#111b2a;color:#f3f6fb;border-right:1px solid #1d2b3e}
+.side-logo{color:#f7f9fc}.side-label,.sidebar-footer{color:#728197}
+.dashboard-nav a{color:#9daec3;border:1px solid transparent}
+.dashboard-nav a:hover{background:#1c2b40;color:#fff}
+.dashboard-nav a.active{background:#213652;color:#e6f0ff;border-color:#2d4768;box-shadow:inset 3px 0 #60a5fa}
+.dashboard-nav .nav-icon{color:#7e93ae}.dashboard-nav a.active .nav-icon{color:#86b9ff}
+.sidebar-note{background:#18263a;border-color:#293b53}.side-spark{color:#8dbbfa}.sidebar-note p{color:#91a3bc}
+.header-workspace{color:#7d8998}.header-workspace strong{color:#445366}
+.nav-toggle,.connect{background:#fff;color:#44566d;border-color:#dfe6ee}
+.nav-toggle:hover,.connect:hover{background:#f0f5fc;border-color:#bfcfe3}
+.card,.composer,.workspace-stats>div,.calendar-day-panel{border-color:#e2e8f0;background:#fff;box-shadow:0 2px 4px #172d4403,0 10px 30px #172d4404;border-radius:16px}
+.workspace-stats>div{border-top:2px solid #d4e4fb}.workspace-stats strong{color:#23384f}.workspace-stats span{color:#607084}.workspace-stats small{color:#8794a5}
+.composer-top{color:#45576e}.composer-top>span:first-child:before{color:#3b82f6}.timezone{color:#8c9aad}
+.primary{background:#2563eb;color:#fff;box-shadow:0 3px 8px #2563eb19;border-radius:9px}
+.primary:hover{background:#1d4ed8;box-shadow:0 5px 14px #2563eb26}
+.secondary,.mic{color:#52667f;background:#f2f6fb;border-color:#dfe7f1}
+.secondary:hover,.mic:hover{color:#244b7e;background:#eaf1fb;border-color:#c6d6eb}
+.text-button{color:#647b98}.text-button:hover{color:#2563eb}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline-color:#93baf7}
+textarea,input,select{color:#27394f}textarea::placeholder,input::placeholder{color:#94a0b0}
+.search-input,.network-extra-filters select,.registration-period-filter select,.calendar-filter select,.notebook-meta input,.notebook-meta select{background:#f8fafc;border-color:#dfe7ef;color:#52647b}
+.calendar-note,.empty-note,#calendarStatus{color:#7a8b9e}
+.cloud-bar{background:#f5f8fc;border-color:#e6edf5;color:#7b8ba0}.cloud-bar span:before{background:#6ba8df}
+.preferences{color:#7a899b}.preferences input:checked+.switch{background:#3975cc}
+.suggestions button{border-color:#e0e7ef;color:#6d7c8f}.suggestions button:hover{border-color:#aac8ee;color:#2563eb}
+.pill{border-color:#e2e8f0;color:#738399}.pill.active{background:#eef4ff;border-color:#d0e0fb;color:#3267b3}
+.month-controls button:not(.text-button){border-color:#e1e8f1;background:#fff;color:#617996}
+.month-controls h3{color:#21344b}.weekdays{color:#7f8fa3}.weekdays span:first-child{color:#b87c7e}.weekdays span:last-child{color:#6684ad}
+.day,.day-blank{border-color:#e8edf3;background:#fff}.day:hover{background:#f7faff;border-color:#c8daf3}
+.day-number{color:#70849c}.day.today,.day.selected{background:#eff5ff;border-color:#9abff7}
+.day.today .day-number,.day.selected .day-number{background:#2563eb;color:#fff}
+.day-more{color:#6687b1}.calendar-day-panel h3,#listTitle{color:#415e82}
+.event-row{border-bottom-color:#edf1f6}.event-row strong{color:#304862}.event-row time{color:#7f92a9}
+.planner-assistant,.unified-assistant{background:linear-gradient(155deg,#fff 15%,#f3f8ff 100%);border:1px solid #dce7f5;box-shadow:0 6px 24px #26446506}
+.planner-assistant h2,.unified-assistant h2{color:#263a52}.assistant-intro,.planner-assistant #plannerState,.planner-disclosure{color:#74859a}
+.planner-assistant #suggestions>article{border-color:#e1e9f3}.assistant-action,.assistant-footer{border-color:#e0e8f2}
+.dashboard-quick{background:#fff;border-color:#e0e8f1}.capture-mode-tabs button{background:#f4f7fb;color:#73849b;border-color:#e4eaf2}.capture-mode-tabs button.active{background:#eaf2ff;color:#2d65ae;border-color:#cee0fc}
+.network-wrap{background-color:#fbfcfe;background-image:radial-gradient(#b5c4d847 .7px,transparent .7px)}
+.map-left-column>.relationship-rail,.map-editor-slot,.map-editor-placeholder{background:#f9fbfe;border-color:#e1e8f1}
+.person-row{color:#344a63;border-bottom-color:#e8eef6}.person-row:hover{background:#edf4fc}.person-row-detail small{color:#8193aa}
+.map-add-person{background:#2563eb;border-color:#2563eb;box-shadow:0 5px 16px #2563eb25}.map-add-person:hover{background:#1d4ed8}
+.map-controls button{background:#ffffffed;border-color:#dce6f2;color:#557397}
+.network-category-chips button{border-color:#e3e9f2}.network-category-chips button.active{background:#edf4ff;border-color:#c9dcf9;color:#3268b5}
+/* The task notebook keeps its warm, recognisable yellow paper. */
+.notepad,.daily-todos.notepad,.todo-scratch{background:#fffbed!important;border-color:#eee3bc!important;box-shadow:0 3px 18px #8d733609!important;color:#3d382a}
+.notepad h2,.notepad h3,.notepad .agenda-heading h2,.notepad .daily-note h3{color:#544729!important}
+.notepad .eyebrow{color:#a38c52}.notepad:before{background:#e9dcb4}
+.notepad .todo-label,.notepad .todo-editor,.notepad .todo-inline-input,.notepad input:not([type=checkbox]),.notepad textarea,.notepad .daily-note textarea{color:#373a35!important}
+.notepad input::placeholder,.notepad textarea::placeholder{color:#a3997c!important}
+.notepad .todo-row,.notepad .todo-insert-zone,.notepad .daily-note{border-color:#e9dfc0!important}
+.notepad .todo-date-tabs button{background:#fffdf5;color:#8b7c56;border-color:#e9dfbf}
+.notepad .todo-date-tabs button.active{background:#f2e8c6;color:#67572d;border-color:#e1d0a0}
+.notepad .todo-progress{background:#f2e7c4;color:#8c7138}.notepad .todo-grip{color:#b7a775}.notepad .todo-hide{color:#b1a37d}
+.notepad .todo-add button,.notepad .todo-add .primary{background:#a88c46;color:white;border-color:#a88c46}
+.notepad input[type=checkbox]{accent-color:#aa8a3c}.notepad .todo-row:has(input:checked) .todo-editor{color:#9b9685!important}
+.notepad .todo-insert-trigger,.notepad .todo-insert-zone input::placeholder{color:#b6a982!important}
+.notepad .daily-note{border-top:1px solid #e9dfc0}.notepad .text-button{color:#8e7c4b}
+.vault-notebook,.vault-calendar,.vault-preview{border-color:#e2e9f2;background:#fff}
+.notebook-title{color:#24364a}.notebook-title::placeholder{color:#b0bac7}
+.notebook-meta label,.notebook-mode,.notebook-bottom,#noteHint{color:#8795a8}
+.notebook-mode .active{background:#edf3fc;color:#3565a3}.notebook-mode,.notebook-bottom{border-color:#e6edf4}
+.live-markdown-toolbar{border-color:#e4ebf3;background:#f7f9fc}.live-markdown-toolbar button{color:#60748e}.live-markdown-toolbar button:hover{background:#e7effb;color:#25599d}
+.live-markdown{color:#2e3d50}.live-block[data-kind=quote]{border-color:#9ebfe7;color:#607996}.live-marker{color:#7d94ae}
+.note-todo-results{background:#f1f7ff;border-color:#dbe9fa;color:#355b86}.note-todo-result{border-color:#dce7f5}
+.vault-file-row{border-color:#e5ebf3}.vault-file-row:hover{background:#f5f9fe}.vault-file-name{color:#354d69}
+.contact-drawer.profile-drawer.refined-contact-editor #savePerson{background:#2563eb;border-color:#2563eb;box-shadow:0 4px 12px #2563eb1c}
+.refined-contact-editor .conversation-section .primary{background:#386fb9}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}button,a{transition:none}}

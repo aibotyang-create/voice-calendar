@@ -1,1 +1,17 @@
-{"name":"malhae-calendar","version":"1.1.0","private":true,"type":"module","scripts":{"dev":"node dev.mjs","test":"node --test","check":"node --check public/app.js && node --check public/people.js && node --check public/firebase-store.js && node --check api/parse.js"},"engines":{"node":">=22"}}
+{
+  "name": "malhae-calendar",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev.mjs",
+    "test": "node --test",
+    "check": "node --check public/app.js && node --check public/people.js && node --check public/firebase-store.js && node --check api/parse.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "linkedom": "0.18.12"
+  }
+}

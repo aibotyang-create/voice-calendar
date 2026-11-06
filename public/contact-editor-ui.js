@@ -5,7 +5,7 @@ export function refineContactEditor({drawer,getData}){
  const $=id=>document.getElementById(id),form=$('personForm'),identity=form.querySelector('.profile-identity'),grid=form.querySelector('.profile-details-grid'),today=()=>seoulDay(Date.now());drawer.classList.add('refined-contact-editor','contact-v2');identity.append($('closePerson'));form.querySelector('.agenda-heading').hidden=true;
  const relation=form.querySelector('.profile-relationship');relation.hidden=true;
  const recent=el('label','contact-recent','최근 연락·만남'),age=el('span','contact-since');recent.append($('pLastContact'),age);identity.after(recent);
- const category=el('div','contact-category-block'),categoryTitle=el('span','contact-field-title','카테고리'),chips=el('div','relationship-options');category.append(categoryTitle,chips,$('pCategory'));$('pCategory').hidden=true;recent.after(category);
+ const category=el('div','contact-category-block'),categoryTitle=el('span','contact-field-title','카테고리'),chips=el('div','relationship-options');recent.after(category);category.append(categoryTitle,chips,$('pCategory'));$('pCategory').hidden=true;
  const tagSection=el('section','contact-tag-section'),tagTitle=el('span','contact-field-title','태그 · 카테고리의 하위 분류'),tagList=el('div','contact-tag-list'),tagInput=el('input'),tagAdd=el('button','','＋ 태그 추가'),tagStore=el('input');tagStore.type='hidden';tagStore.id='pTags';tagStore.value='[]';tagInput.placeholder='태그 입력 후 Enter';tagInput.maxLength=40;tagInput.hidden=true;tagAdd.type='button';tagInput.setAttribute('aria-label','하위 태그');tagSection.append(tagTitle,tagList,tagInput,tagAdd,tagStore);category.after(tagSection);
  let tagsByCategory=new Map(),currentCategory='지인';
  const tags=()=>{try{return JSON.parse(tagStore.value)}catch{return []}};

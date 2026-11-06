@@ -31,6 +31,8 @@ test('API 인증 및 AI 구조화 응답 처리',async()=>{
     let res=response();await handler({method:'POST',headers:{},body:{text:'내일 미팅',history:[]}},res);assert.equal(res.code,401);assert.equal(calls,0);
     res=response();await handler({method:'POST',headers:{authorization:'Bearer test'},body:{text:'미팅',history:[]}},res);assert.equal(res.code,200);assert.equal(res.data.title,'팀 미팅');assert.equal(calls,2);
     res=response();await handler({method:'POST',headers:{authorization:'Bearer test'},body:{mode:'contact',text:'ABC 김민수 팀장 제안서 보내기',history:[]}},res);assert.equal(res.code,200);assert.equal(res.data.contact.name,'김민수');assert.equal(res.data.contact.followup,'제안서 보내기');
+    res=response();await handler({method:'POST',headers:{authorization:'Bearer test'},body:{mode:'contact',text:'명함 추출',history:[],image:'data:image/png;base64,aGVsbG8='}},res);assert.equal(res.code,200);assert.equal(res.data.contact.address,'');
+    res=response();await handler({method:'POST',headers:{authorization:'Bearer test'},body:{mode:'contact',text:'명함 추출',history:[],image:'https://example.com/not-allowed.png'}},res);assert.equal(res.code,400);
     global.fetch=async()=>({ok:true,json:async()=>({aud:'other-client',email:'owner@example.com',email_verified:true})});
     res=response();await handler({method:'POST',headers:{authorization:'Bearer test'},body:{text:'미팅',history:[]}},res);assert.equal(res.code,403);
     res=response();await handler({method:'POST',headers:{authorization:'Bearer test'},body:'{'},res);assert.equal(res.code,400);

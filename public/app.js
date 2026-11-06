@@ -1,6 +1,7 @@
 import {seoulDay,monthRange,eventDays,calendarUrl,resolveEventColor} from './calendar.js';
 import {initPeople} from './people.js';
-import {initEventEditor} from './event-editor.js';
+import {initEventEditor,buildManualEvent} from './event-editor.js';
+import {pastelColor} from './workspace-utils.js';
 const $=id=>document.getElementById(id);
 let config={},token='',expires=0,busy=false,history=[],draft=null,saved=null,recognition=null,listening=false;
 const scope='openid email https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly';
@@ -67,7 +68,7 @@ async function save(){
   const url=new URL(saved.htmlLink||'https://calendar.google.com/');
   $('calendarLink').href=url.protocol==='https:'&&['www.google.com','calendar.google.com'].includes(url.hostname)?url.href:'https://calendar.google.com/';
   status('캘린더에 등록했어요.');draft=null;
-  const day=seoulDay(saved.start.dateTime);calendarYear=Number(day.slice(0,4));calendarMonth=Number(day.slice(5,7))-1;selectedDay=null;await loadCalendar();
+  const day=seoulDay(saved.start.dateTime);calendarYear=Number(day.slice(0,4));calendarMonth=Number(day.slice(5,7))-1;selectedDay=day;await loadCalendar();
   people.refresh();
 }
 $('submit').onclick=parse;
@@ -86,7 +87,7 @@ if(Speech){
   recognition.onend=()=>{listening=false;$('mic').classList.remove('listening');$('mic').querySelector('span').textContent='말로 입력';$('submit').disabled=busy;if(!failed&&$('text').value.trim()) parse();};
   $('mic').onclick=()=>{if(listening){recognition.stop();return;}if(!authenticated()){status('먼저 Google 캘린더를 연결해주세요.');return;}base=$('text').value.trim()?$('text').value.trim()+' ':'';failed=false;try{recognition.start();}catch{status('마이크를 시작하지 못했어요. 잠시 후 다시 시도해주세요.');}};
 }else{$('mic').disabled=true;$('voiceHint').textContent='키보드 음성 받아쓰기로 입력하세요';}
-let calendarYear=Number(seoulDay(Date.now()).slice(0,4)),calendarMonth=Number(seoulDay(Date.now()).slice(5,7))-1,selectedDay=null,calendarEvents=[],calendarRequest=0,eventPalette={},defaultCalendarColor={},colorMetadataLoaded=false;
+let calendarYear=Number(seoulDay(Date.now()).slice(0,4)),calendarMonth=Number(seoulDay(Date.now()).slice(5,7))-1,selectedDay=seoulDay(Date.now()),calendarEvents=[],calendarRequest=0,eventPalette={},defaultCalendarColor={},colorMetadataLoaded=false;
 const colorNames=['','라벤더','세이지','포도','분홍','노랑','주황','청록','회색','파랑','바질','토마토'];
 async function loadColorMetadata(){if(colorMetadataLoaded)return true;const session=token;const results=await Promise.allSettled([calendarRequestApi('colors'),calendarRequestApi('users/me/calendarList/primary')]);if(session!==token)return false;let ok=true;
   const colors=results[0];if(colors.status==='fulfilled'&&colors.value.ok){const data=await colors.value.json();eventPalette=Object.fromEntries(Object.entries(data.event||{}).map(([id,color])=>[id,{...color,name:colorNames[Number(id)]||'색상 '+id}]));}else ok=false;
@@ -103,14 +104,14 @@ function renderCalendar(){
   for(let day=1;day<=range.days;day++){
     const date=prefix+'-'+String(day).padStart(2,'0'),items=indexed.filter(e=>e.days.includes(date));
     const button=el('button','day'+(date===seoulDay(Date.now())?' today':'')+(date===selectedDay?' selected':''));button.type='button';button.setAttribute('aria-label',date+', 일정 '+items.length+'개');button.setAttribute('aria-pressed',String(date===selectedDay));
-    button.append(el('span','day-number',day));for(const {event} of items.slice(0,2)){const chip=el('span','day-event',event.summary||'이름 없는 일정'),color=resolveEventColor(event,eventPalette,defaultCalendarColor);chip.style.background=color.background;chip.style.color=color.foreground;button.append(chip);}if(items.length>2)button.append(el('span','day-more','+'+(items.length-2)));
-    button.onclick=()=>{selectedDay=selectedDay===date?null:date;renderCalendar();};$('monthGrid').append(button);
+    button.append(el('span','day-number',day));for(const {event} of items.slice(0,2)){const chip=el('span','day-event',event.summary||'이름 없는 일정'),color=resolveEventColor(event,eventPalette,defaultCalendarColor);chip.style.background=pastelColor(color.background);chip.style.color='#575064';button.append(chip);}if(items.length>2)button.append(el('span','day-more','+'+(items.length-2)));
+    button.onclick=()=>{selectedDay=date;renderCalendar();};$('monthGrid').append(button);
   }
   $('showMonth').hidden=!selectedDay;$('listTitle').textContent=selectedDay?selectedDay+' 일정':'이달의 일정 · '+events.length+'개';
   const shown=indexed.filter(e=>!selectedDay||e.days.includes(selectedDay));
   if(!shown.length) $('eventList').append(el('p','empty-note',authenticated()?'표시할 일정이 없어요. 위에서 새 일정을 등록해보세요.':'Google 계정을 연결해주세요.'));
   for(const {event:e} of shown){
-    const row=el('article','event-row'),date=e.start.date||seoulDay(e.start.dateTime),time=e.start.date?'종일':new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'numeric',minute:'2-digit'}).format(new Date(e.start.dateTime));row.style.borderLeft='3px solid '+resolveEventColor(e,eventPalette,defaultCalendarColor).background;row.style.paddingLeft='10px';
+    const row=el('article','event-row'),date=e.start.date||seoulDay(e.start.dateTime),time=e.start.date?'종일':new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'numeric',minute:'2-digit'}).format(new Date(e.start.dateTime));row.style.borderLeft='3px solid '+pastelColor(resolveEventColor(e,eventPalette,defaultCalendarColor).background,.45);row.style.paddingLeft='10px';
     row.append(el('div','event-time',date.slice(5).replace('-','/')+'\n'+time));const body=el('div','event-body');const link=el('a','event-name',e.summary||'이름 없는 일정');link.href=calendarUrl(e.htmlLink);link.target='_blank';link.rel='noopener noreferrer';body.append(link);if(e.location)body.append(el('p','event-location',e.location));if(e.extendedProperties?.private?.source==='malhae-calendar')body.append(el('span','person-tag','AI-calendar에서 등록'));row.append(body);$('eventList').append(row);
   }
 }
@@ -125,9 +126,13 @@ async function loadCalendar(){
     calendarEvents=items.filter(e=>e.status!=='cancelled');$('calendarStatus').textContent=colorsReady?'Google 캘린더와 일정 색상 동기화됨':'일정은 불러왔어요. 색상을 불러오려면 Google 캘린더를 다시 연결해주세요.';renderCalendar();
   }catch(e){if(request===calendarRequest){$('calendarStatus').textContent=e.message;renderCalendar();}}
 }
-function changeMonth(delta){const date=new Date(Date.UTC(calendarYear,calendarMonth+delta,1));calendarYear=date.getUTCFullYear();calendarMonth=date.getUTCMonth();selectedDay=null;loadCalendar();}
-$('prevMonth').onclick=()=>changeMonth(-1);$('nextMonth').onclick=()=>changeMonth(1);$('todayMonth').onclick=()=>{const d=seoulDay(Date.now());calendarYear=Number(d.slice(0,4));calendarMonth=Number(d.slice(5,7))-1;selectedDay=null;loadCalendar();};$('refreshCalendar').onclick=()=>{colorMetadataLoaded=false;loadCalendar();people.refresh();};$('eventFilter').onchange=renderCalendar;$('showMonth').onclick=()=>{selectedDay=null;renderCalendar();};
-const people=initPeople({getToken:()=>authenticated()?token:'',googleApi,onSchedule:(name,notes)=>{clear();$('text').value=name+'님과 미팅. 준비할 내용: '+notes;$('text').focus();document.querySelector('.composer').scrollIntoView({behavior:'smooth',block:'center'});}});
+function changeMonth(delta){const date=new Date(Date.UTC(calendarYear,calendarMonth+delta,1));calendarYear=date.getUTCFullYear();calendarMonth=date.getUTCMonth();selectedDay=calendarYear+'-'+String(calendarMonth+1).padStart(2,'0')+'-01';loadCalendar();}
+document.addEventListener('ai-calendar:select-date',event=>{const date=event.detail;if(!/^\d{4}-\d\d-\d\d$/.test(date||''))return;selectedDay=date;calendarYear=Number(date.slice(0,4));calendarMonth=Number(date.slice(5,7))-1;loadCalendar();});
+$('prevMonth').onclick=()=>changeMonth(-1);$('nextMonth').onclick=()=>changeMonth(1);$('todayMonth').onclick=()=>{const d=seoulDay(Date.now());calendarYear=Number(d.slice(0,4));calendarMonth=Number(d.slice(5,7))-1;selectedDay=d;loadCalendar();};$('refreshCalendar').onclick=()=>{colorMetadataLoaded=false;loadCalendar();people.refresh();};$('eventFilter').onchange=renderCalendar;$('showMonth').onclick=()=>{selectedDay=null;renderCalendar();};
+const people=initPeople({getToken:()=>authenticated()?token:'',googleApi,onSchedule:(name,notes)=>{clear();$('text').value=name+'님과 미팅. 준비할 내용: '+notes;$('text').focus();document.querySelector('.composer').scrollIntoView({behavior:'smooth',block:'center'});},onQuickEvent:async(text,history,id)=>{
+  if(!authenticated())throw Error('상단에서 Google 캘린더를 연결해주세요.');const response=await fetch('/api/parse',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({text,history}),signal:AbortSignal.timeout(55000)});const result=await response.json();if(!response.ok)throw Error(result.error||'일정을 정리하지 못했어요.');if(result.question)return result;
+  const event=buildManualEvent({title:result.title,start:localTime(result.start),end:localTime(result.end),location:result.location,description:result.description,reminder:result.reminderMinutes,colorId:''},id);let saved=await googleApi('',{method:'POST',body:JSON.stringify(event)});if(saved.status===409)saved=await googleApi('/'+id);if(!saved.ok)throw Error('Google 캘린더 저장에 실패했어요. 다시 시도해주세요.');const stored=await saved.json();const day=seoulDay(stored.start.dateTime);calendarYear=Number(day.slice(0,4));calendarMonth=Number(day.slice(5,7))-1;selectedDay=day;await loadCalendar();people.refresh();return {saved:true};
+}});
 initEventEditor({connected:authenticated,defaultDay:()=>selectedDay||seoulDay(Date.now()),colors:()=>eventPalette,insert:async event=>{let response=await googleApi('',{method:'POST',body:JSON.stringify(event)});if(response.status===409)response=await googleApi('/'+event.id);if(!response.ok)throw Error('Google 캘린더에 저장하지 못했어요. 연결과 권한을 확인한 뒤 재시도해주세요.');return response.json();},onSaved:async event=>{const day=seoulDay(event.start.dateTime);calendarYear=Number(day.slice(0,4));calendarMonth=Number(day.slice(5,7))-1;selectedDay=day;await loadCalendar();people.refresh();}});
 renderCalendar();
 fetch('/api/config').then(r=>r.json()).then(c=>{config=c;people.configure(c.firebase);$('setupState').textContent=c.ready?'서버 설정이 준비됐어요. Google 계정을 연결해주세요.':'아직 Google·AI 설정 전이에요. 제공된 README를 따라 환경 변수를 설정해주세요.';if(!c.ready) $('setup').open=true;}).catch(()=>status('서버에 연결하지 못했어요. 새로고침해주세요.'));

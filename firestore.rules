@@ -9,7 +9,7 @@ service cloud.firestore {
     match /users/{uid}/contacts/{contactId} {
       allow read: if owner(uid);
       allow create, update: if owner(uid)
-        && request.resource.data.keys().hasOnly(['name','company','title','category','color','strength','lastContact','notes','focus','followup','email','phone','archived','updatedAt'])
+        && request.resource.data.keys().hasOnly(['name','company','title','category','color','strength','lastContact','notes','focus','followup','email','phone','address','archived','updatedAt'])
         && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
         && request.resource.data.company is string && request.resource.data.company.size() <= 200
         && request.resource.data.title is string && request.resource.data.title.size() <= 100
@@ -22,6 +22,7 @@ service cloud.firestore {
         && request.resource.data.followup is string && request.resource.data.followup.size() <= 1000
         && request.resource.data.email is string && request.resource.data.email.size() <= 200
         && request.resource.data.phone is string && request.resource.data.phone.size() <= 100
+        && (!('address' in request.resource.data) || (request.resource.data.address is string && request.resource.data.address.size() <= 500))
         && request.resource.data.archived is bool
         && request.resource.data.updatedAt == request.time;
     }
@@ -51,6 +52,24 @@ service cloud.firestore {
         && request.resource.data.done is bool && request.resource.data.archived is bool
         && request.resource.data.createdAt is int
         && (!('order' in request.resource.data) || (request.resource.data.order is int && request.resource.data.order >= 0))
+        && request.resource.data.updatedAt == request.time;
+    }
+    match /users/{uid}/dailyNotes/{date} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.keys().hasOnly(['text','updatedAt'])
+        && request.resource.data.text is string && request.resource.data.text.size() <= 10000
+        && request.resource.data.updatedAt == request.time;
+    }
+    match /users/{uid}/conversations/{entryId} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['contactId','date','text','createdAt','updatedAt'])
+        && request.resource.data.contactId is string && request.resource.data.contactId.size() <= 200
+        && request.resource.data.date is string && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 4000
+        && request.resource.data.createdAt is int
         && request.resource.data.updatedAt == request.time;
     }
   }

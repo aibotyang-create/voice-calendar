@@ -23,6 +23,12 @@ export async function prepareStore(config){
     watchDay:day=>{if(day===activeDay)return;activeDay=day;offTodos();todos=[];report();offTodos=fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('date','==',day),fs.limit(300)),snapshot=>{if(day!==activeDay)return;todos=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));report();},onError);},
     todo:async todo=>{const {id,...data}=todo;await fs.setDoc(fs.doc(db,...root,'todos',id),{...data,updatedAt:fs.serverTimestamp()});},
     reorderTodos:async ids=>{if(ids.length>300||new Set(ids).size!==ids.length)throw Error('할 일 순서를 확인해주세요.');const batch=fs.writeBatch(db);ids.forEach((id,order)=>batch.update(fs.doc(db,...root,'todos',id),{order,updatedAt:fs.serverTimestamp()}));await batch.commit();},
+    insertTodo:async(todo,ids)=>{if(ids.length>300||new Set(ids).size!==ids.length)throw Error('하루 할 일은 최대 300개까지 저장할 수 있어요.');const {id,...data}=todo,batch=fs.writeBatch(db);batch.set(fs.doc(db,...root,'todos',id),{...data,order:ids.indexOf(id),updatedAt:fs.serverTimestamp()});ids.filter(other=>other!==id).forEach(other=>batch.update(fs.doc(db,...root,'todos',other),{order:ids.indexOf(other),updatedAt:fs.serverTimestamp()}));await batch.commit();},
+    watchTodos:(date,onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('date','==',date),fs.limit(300)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
+    watchNote:(date,onData,onError)=>fs.onSnapshot(fs.doc(db,...root,'dailyNotes',date),snapshot=>onData(snapshot.exists()?snapshot.data().text:''),onError),
+    note:async(date,text)=>fs.setDoc(fs.doc(db,...root,'dailyNotes',date),{text,updatedAt:fs.serverTimestamp()}),
+    watchConversations:(contactId,onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'conversations'),fs.where('contactId','==',contactId),fs.limit(300)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
+    conversation:async(entry,lastContact)=>{const {id,...data}=entry,batch=fs.writeBatch(db);batch.set(fs.doc(db,...root,'conversations',id),{...data,updatedAt:fs.serverTimestamp()});batch.update(fs.doc(db,...root,'contacts',entry.contactId),{lastContact,updatedAt:fs.serverTimestamp()});await batch.commit();},
     close:()=>{offContacts();offTasks();offCategories();offTodos();auth.signOut(session).catch(()=>{});}
   };
   }};

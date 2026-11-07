@@ -96,6 +96,7 @@ async function loadColorMetadata(){if(colorMetadataLoaded)return true;const sess
 }
 const el=(tag,className,text)=>{const n=document.createElement(tag);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n;};
 function renderCalendar(){
+  if($('eventFilter').value==='todos'){document.dispatchEvent(new CustomEvent('ai-calendar:render-todos',{detail:{year:calendarYear,month:calendarMonth,selectedDay}}));return;}
   const range=monthRange(calendarYear,calendarMonth),prefix=calendarYear+'-'+String(calendarMonth+1).padStart(2,'0');
   $('monthTitle').textContent=calendarYear+'년 '+(calendarMonth+1)+'월';$('monthGrid').replaceChildren();$('eventList').replaceChildren();
   const events=calendarEvents.filter(e=>$('eventFilter').value==='all'||e.extendedProperties?.private?.source==='malhae-calendar');
@@ -116,6 +117,7 @@ function renderCalendar(){
   }
 }
 async function loadCalendar(){
+  if($('eventFilter').value==='todos'){calendarRequest++;renderCalendar();return;}
   const request=++calendarRequest,session=token;calendarEvents=[];renderCalendar();
   if(!authenticated()){$('calendarStatus').textContent='Google 캘린더를 연결하면 일정이 표시됩니다.';return;}
   $('calendarStatus').textContent='Google 캘린더에서 일정을 불러오고 있어요…';
@@ -128,7 +130,7 @@ async function loadCalendar(){
 }
 function changeMonth(delta){const date=new Date(Date.UTC(calendarYear,calendarMonth+delta,1));calendarYear=date.getUTCFullYear();calendarMonth=date.getUTCMonth();selectedDay=calendarYear+'-'+String(calendarMonth+1).padStart(2,'0')+'-01';loadCalendar();}
 document.addEventListener('ai-calendar:select-date',event=>{const date=event.detail;if(!/^\d{4}-\d\d-\d\d$/.test(date||''))return;selectedDay=date;calendarYear=Number(date.slice(0,4));calendarMonth=Number(date.slice(5,7))-1;loadCalendar();});
-$('prevMonth').onclick=()=>changeMonth(-1);$('nextMonth').onclick=()=>changeMonth(1);$('todayMonth').onclick=()=>{const d=seoulDay(Date.now());calendarYear=Number(d.slice(0,4));calendarMonth=Number(d.slice(5,7))-1;selectedDay=d;loadCalendar();};$('refreshCalendar').onclick=()=>{colorMetadataLoaded=false;loadCalendar();people.refresh();};$('eventFilter').onchange=renderCalendar;$('showMonth').onclick=()=>{selectedDay=null;renderCalendar();};
+$('prevMonth').onclick=()=>changeMonth(-1);$('nextMonth').onclick=()=>changeMonth(1);$('todayMonth').onclick=()=>{const d=seoulDay(Date.now());calendarYear=Number(d.slice(0,4));calendarMonth=Number(d.slice(5,7))-1;selectedDay=d;loadCalendar();};$('refreshCalendar').onclick=()=>{colorMetadataLoaded=false;loadCalendar();people.refresh();};$('eventFilter').onchange=()=>loadCalendar();$('showMonth').onclick=()=>{selectedDay=null;renderCalendar();};
 document.addEventListener('ai-calendar:birthdays-synced',()=>loadCalendar());
 const people=initPeople({getToken:()=>authenticated()?token:'',googleApi,onSchedule:(name,notes)=>{clear();$('text').value=name+'님과 미팅. 준비할 내용: '+notes;$('text').focus();document.querySelector('.composer').scrollIntoView({behavior:'smooth',block:'center'});},onQuickEvent:async(text,history,id)=>{
   if(!authenticated())throw Error('상단에서 Google 캘린더를 연결해주세요.');const response=await fetch('/api/parse',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({text,history}),signal:AbortSignal.timeout(55000)});const result=await response.json();if(!response.ok)throw Error(result.error||'일정을 정리하지 못했어요.');if(result.question)return result;

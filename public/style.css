@@ -273,3 +273,5 @@ textarea,input,select{color:#27394f}textarea::placeholder,input::placeholder{col
 .dashboard-recommendations .recommendation-list>.primary,.planner-assistant #suggestions>.primary{margin-top:12px;font-size:12px;padding:10px 12px}
 
 .planner-assistant .suggestion-card,.dashboard-recommendations .suggestion-card{padding-top:8px;padding-bottom:8px}
+
+#todoList.todo-drag-active>.todo-scratch,#todoList.reordering>.todo-scratch{visibility:hidden!important;pointer-events:none!important}

@@ -312,3 +312,6 @@ textarea,input,select{color:#27394f}textarea::placeholder,input::placeholder{col
 .schedule-event-capture{min-width:0}.schedule-event-capture>.composer{width:100%;margin:0;padding:20px;border-radius:18px}.schedule-event-capture .composer textarea{min-height:125px;max-height:260px;line-height:1.7;font-size:12px}.schedule-event-capture .composer-top{gap:10px}.schedule-event-capture .composer-top .timezone{font-size:8px}.schedule-event-capture .composer-bottom{gap:8px;flex-wrap:wrap}.schedule-event-capture .composer-bottom button{font-size:11px;padding:10px 12px;min-height:38px}
 .schedule-event-capture>#status{display:none;background:transparent;border:0;padding:0;margin:9px 0;color:#526177;font-size:11px;line-height:1.6}.schedule-event-capture.active-operation>#status:not(:empty){display:block}
 .schedule-event-capture>#draft,.schedule-event-capture>#success{margin-top:12px;padding:18px}.schedule-event-capture>[hidden]{display:none!important}
+
+/* The schedule card frames the editor; avoid a second focus rectangle inside. */
+.composer #text:focus,.composer #text:focus-visible{outline:none!important;box-shadow:none!important;border-color:transparent!important}

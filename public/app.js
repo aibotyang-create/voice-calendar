@@ -139,3 +139,6 @@ const people=initPeople({getToken:()=>authenticated()?token:'',googleApi,onSched
 initEventEditor({connected:authenticated,defaultDay:()=>selectedDay||seoulDay(Date.now()),colors:()=>eventPalette,insert:async event=>{let response=await googleApi('',{method:'POST',body:JSON.stringify(event)});if(response.status===409)response=await googleApi('/'+event.id);if(!response.ok)throw Error('Google 캘린더에 저장하지 못했어요. 연결과 권한을 확인한 뒤 재시도해주세요.');return response.json();},onSaved:async event=>{const day=seoulDay(event.start.dateTime);calendarYear=Number(day.slice(0,4));calendarMonth=Number(day.slice(5,7))-1;selectedDay=day;await loadCalendar();people.refresh();}});
 renderCalendar();
 fetch('/api/config').then(r=>r.json()).then(c=>{config=c;people.configure(c.firebase);$('setupState').textContent=c.ready?'서버 설정이 준비됐어요. Google 계정을 연결해주세요.':'아직 Google·AI 설정 전이에요. 제공된 README를 따라 환경 변수를 설정해주세요.';if(!c.ready) $('setup').open=true;}).catch(()=>status('서버에 연결하지 못했어요. 새로고침해주세요.'));
+
+// Reveal only after navigation and dashboard initialization have completed.
+queueMicrotask(()=>window.aiCalendarReady?.());

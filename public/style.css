@@ -275,3 +275,28 @@ textarea,input,select{color:#27394f}textarea::placeholder,input::placeholder{col
 .planner-assistant .suggestion-card,.dashboard-recommendations .suggestion-card{padding-top:8px;padding-bottom:8px}
 
 #todoList.todo-drag-active>.todo-scratch,#todoList.reordering>.todo-scratch{visibility:hidden!important;pointer-events:none!important}
+
+.network-marquee{fill:#7da9e821;stroke:#6f96c7;stroke-width:1.5;stroke-dasharray:5 3;pointer-events:none;rx:5}
+.unified-assistant .assistant-input-shell{margin-top:15px;border:1px solid #d7e1ec;border-radius:16px;background:#fff;box-shadow:0 3px 14px #23354d05;overflow:hidden}
+.unified-assistant .assistant-input-shell:focus-within{border-color:#88a6c8;box-shadow:0 0 0 3px #86a5cc16}
+.unified-assistant .assistant-input-shell>textarea{display:block;width:100%;min-height:90px;border:0!important;background:transparent!important;box-shadow:none!important;outline:0;padding:14px 15px 7px;color:#24344a;font-size:13px;line-height:1.65;resize:vertical}
+.unified-assistant .assistant-input-shell .dashboard-composer-actions{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;margin:0;border-top:0;gap:10px}
+.unified-assistant #assistantMic{display:inline-flex;align-items:center;gap:7px;border:0;background:#f0f4f8;color:#52677e;border-radius:11px;font-size:11px;font-weight:500;padding:9px 11px;min-height:36px;box-shadow:none}
+.unified-assistant #assistantMic:hover{background:#e6edf5;color:#263f5d}.unified-assistant #assistantMic.listening{background:#fff0eb;color:#b5523d}
+.unified-assistant #assistantRun{background:#253c56;color:#fff;border:1px solid #253c56;border-radius:11px;padding:9px 16px;min-height:36px;box-shadow:none;font-size:12px}
+.dashboard-recommendations:has(.recommendation-list:empty):has(.recommendation-state:empty){display:none}
+
+/* Both archive panes remain visible; only their proportions change. */
+.vault-view .vault-layout.vault-notes-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:22px;align-items:start;transition:grid-template-columns .25s ease}
+.vault-view .vault-layout.vault-notes-layout.vault-editing{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.vault-view .vault-notes-layout>.vault-notebook{grid-column:1;grid-row:1;min-width:0;width:100%;min-height:640px;padding:22px!important}
+.vault-view .vault-notes-layout>.vault-right{grid-column:2;grid-row:1;min-width:0;width:100%;display:block}
+.vault-view .vault-calendar{min-height:0;padding:22px!important}
+.vault-view #vaultMonthGrid{grid-auto-rows:minmax(95px,auto)}
+.vault-view .vault-editor-controls{display:flex;justify-content:flex-end;margin:0 0 12px}.vault-view .vault-editor-controls button{font-size:11px;padding:7px 10px;min-height:30px}
+.vault-view .notebook-toolbar{gap:9px;flex-wrap:wrap;padding-bottom:16px}.vault-view .notebook-title{font-size:26px}.vault-view .notebook-meta{gap:9px}.vault-view .notebook-meta>label{flex-wrap:wrap;gap:5px}
+.vault-view .vault-editing .vault-calendar h2{font-size:18px}.vault-view .vault-editing #vaultMonth{font-size:20px}.vault-view .vault-editing .vault-calendar .agenda-heading{flex-wrap:wrap;gap:8px}.vault-view .vault-editing .vault-calendar .agenda-heading>div{flex-basis:100%}
+.vault-view .vault-editing #vaultMonthGrid{grid-auto-rows:minmax(65px,auto);gap:4px}.vault-view .vault-editing .vault-date-cell>.day{padding:7px}.vault-view .vault-editing .vault-date-cell .day-number{font-size:14px}.vault-view .vault-editing .vault-date-titles{margin:34px 3px 5px;gap:3px}.vault-view .vault-editing .vault-date-title{font-size:10px;padding:4px;line-height:1.4}
+.vault-view .vault-editing .vault-upload{grid-template-columns:minmax(0,1fr)}
+@media(max-width:900px){.vault-view .vault-layout.vault-notes-layout,.vault-view .vault-layout.vault-notes-layout.vault-editing{grid-template-columns:minmax(0,1fr)}.vault-view .vault-notes-layout>.vault-right{grid-column:1;grid-row:1}.vault-view .vault-notes-layout>.vault-notebook{grid-column:1;grid-row:2;min-height:0}.vault-view .vault-editing>.vault-notebook{grid-row:1}.vault-view .vault-editing>.vault-right{grid-row:2}}
+@media(prefers-reduced-motion:reduce){.vault-view .vault-layout.vault-notes-layout{transition:none}}

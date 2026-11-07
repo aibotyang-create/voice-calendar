@@ -15,4 +15,4 @@ test('날짜 탭은 월말·연말을 넘기고, 할 일을 기존 두 항목 �
   assert.equal(pastelColor('#000000'),'#c7c7c7');assert.match(pastelColor('invalid'),/^#[0-9a-f]{6}$/);
 });
 
-test('중요도 필터는 선택한 숫자와 정확히 일치하는 인맥만 표시한다',()=>{const people=[1,2,3,4,5].map(strength=>({id:String(strength),name:'인맥',strength}));for(let importance=1;importance<=5;importance++)assert.deepEqual(filterNetwork(people,{importance:String(importance)}).map(p=>p.strength),[importance]);assert.equal(filterNetwork(people,{importance:0}).length,5);});
+test('중요도 필터는 선택한 숫자 이상인 인맥을 표시한다',()=>{const people=[1,2,3,4,5].map(strength=>({id:String(strength),name:'인맥',strength}));for(let importance=1;importance<=5;importance++)assert.deepEqual(filterNetwork(people,{importance:String(importance)}).map(p=>p.strength),[importance,importance+1,importance+2,importance+3,importance+4].filter(n=>n<=5));assert.equal(filterNetwork(people,{importance:0}).length,5);});

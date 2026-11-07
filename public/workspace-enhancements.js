@@ -119,6 +119,6 @@ export function initWorkspaceEnhancements({getData,openPerson,navigate,refreshUi
   new MutationObserver(()=>{enrichTodos();}).observe($('todoList'),{childList:true});
   function queueConversation(text,date){document.dispatchEvent(new CustomEvent('contact-record-ready'));$('talkText').value=text;$('talkDate').value=date||today();if(/^\d{4}-\d\d-\d\d$/.test(date||'')){pendingConversation={id:crypto.randomUUID(),date,text:text.slice(0,4000),createdAt:Date.now()};$('personState').textContent='확인 후 저장하면 인맥 정보와 '+date+' 대화 기록을 함께 저장합니다.';}}
   async function afterPersonSave(id){if(!pendingConversation||!getData().store)return;const entry=pendingConversation;await getData().store.conversation({...entry,contactId:id},[getData().contacts.find(p=>p.id===id)?.lastContact||'',entry.date].sort().at(-1));pendingConversation=null;}
-  planner=initPlanner({getData,refreshUi,drawer,errorMessage});vault=initVault({getData,onQuickEvent,refreshUi,navigate,errorMessage});$('railImportance').onchange=renderMaps;
+  planner=initPlanner({getData,refreshUi,drawer,errorMessage});vault=initVault({getData,onQuickEvent,refreshUi,navigate,errorMessage,attachRecommendations:planner.attachRecommendations,recommend:planner.recommend});$('railImportance').onchange=renderMaps;
   return {render:()=>{render();planner.render();vault.render();},route,openPerson:p=>{placeEditor(p);bindTalks(p);planner.openPerson(p);},activatePerson:id=>{bindTalks(getData().contacts.find(p=>p.id===id)||{id});planner.activatePerson(id);},queueConversation,afterPersonSave};
 }

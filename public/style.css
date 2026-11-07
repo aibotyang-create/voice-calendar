@@ -221,3 +221,25 @@ textarea,input,select{color:#27394f}textarea::placeholder,input::placeholder{col
 .calendar-view>.calendar-preparation{margin-top:24px;width:100%;padding:24px;border-radius:16px}.calendar-view .calendar-preparation #prepList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.calendar-view .calendar-preparation .meeting-card{margin-top:0}.calendar-view .calendar-preparation .event-name{font-size:13px}.calendar-view .calendar-preparation .meeting-date,.calendar-view .calendar-preparation .meeting-notes,.calendar-view .calendar-preparation .focus-note{font-size:11px}
 .workspace-view.vault-view,.workspace-view.vault-view *{color:#111!important}.workspace-view.vault-view input::placeholder,.workspace-view.vault-view textarea::placeholder,.workspace-view.vault-view .live-markdown:before{color:#111!important;opacity:1}.workspace-view.vault-view .primary{background:#edf3fc!important;border:1px solid #cfdaeb!important;color:#111!important;box-shadow:none}.workspace-view.vault-view .day.today .day-number,.workspace-view.vault-view .day.selected .day-number{background:#dfeafb!important;color:#111!important}.workspace-view.vault-view .live-markdown input[type=checkbox]{accent-color:#111}.workspace-view.vault-view .notebook-reader a{text-decoration:underline}@media(max-width:700px){.calendar-view .calendar-preparation #prepList{grid-template-columns:minmax(0,1fr)}.calendar-view>.calendar-preparation{padding:18px}}
 .workspace-view.vault-view :disabled{opacity:1!important;color:#111!important}
+
+/* Date-first archive; open the same notebook in a spacious dedicated view. */
+.vault-view .vault-notes-layout{display:block;width:100%;max-width:none}
+.vault-view .vault-right{display:block;width:100%;max-width:none}
+.vault-view .vault-calendar{width:100%;min-height:calc(100vh - 220px);padding:28px}
+.vault-view .vault-calendar .agenda-heading{display:flex;align-items:center;gap:16px}
+.vault-view .vault-calendar .agenda-heading>div{flex:1}
+.vault-view .vault-calendar h2{font-size:28px}
+.vault-view #vaultMonth{font-size:28px}
+.vault-view #vaultMonthGrid{grid-auto-rows:minmax(128px,1fr);gap:8px}
+.vault-view .vault-date-cell{position:relative;min-width:0;border:1px solid #e4e8ef;border-radius:12px;overflow:hidden;background:#fff}
+.vault-view .vault-date-cell>.day{position:absolute;inset:0;width:100%;height:100%;min-height:0;border:0;border-radius:0;align-items:flex-start;justify-content:flex-start;padding:12px}
+.vault-view .vault-date-cell .day-number{font-size:19px}
+.vault-view .vault-date-titles{position:relative;margin:46px 7px 8px;display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.vault-view .vault-date-title{pointer-events:auto;display:block;width:100%;border:0;border-radius:5px;background:#eef3fa;text-align:left;padding:6px 8px;font-size:13px;line-height:1.4;white-space:normal;overflow-wrap:anywhere}
+.vault-view .vault-date-title:hover{background:#dfeafa}
+.vault-view .vault-files{margin-top:20px}
+.vault-view .vault-editor-controls{margin-bottom:16px}
+.vault-view .vault-notebook{width:100%;max-width:none;min-height:calc(100vh - 220px);padding:32px}
+.vault-view .vault-notebook .live-markdown,.vault-view .notebook-reader{min-height:55vh}
+.vault-view [hidden]{display:none!important}
+@media(max-width:700px){.vault-view .vault-calendar,.vault-view .vault-notebook{padding:14px}.vault-view #vaultMonthGrid{gap:3px;grid-auto-rows:minmax(100px,1fr)}.vault-view .vault-date-title{font-size:11px;padding:4px}.vault-view .vault-calendar .agenda-heading{flex-wrap:wrap}.vault-view .vault-calendar h2{font-size:22px}}

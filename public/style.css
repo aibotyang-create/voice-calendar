@@ -315,3 +315,6 @@ textarea,input,select{color:#27394f}textarea::placeholder,input::placeholder{col
 
 /* The schedule card frames the editor; avoid a second focus rectangle inside. */
 .composer #text:focus,.composer #text:focus-visible{outline:none!important;box-shadow:none!important;border-color:transparent!important}
+
+/* Archive typography stays compact in both pane proportions. */
+.vault-view .vault-calendar h2{font-size:20px!important;line-height:1.35}.vault-view #vaultMonth{font-size:21px!important;line-height:1.3}.vault-view .vault-date-cell .day-number{font-size:14px!important}.vault-view .vault-date-title{font-size:11px!important;line-height:1.45}.vault-view .vault-calendar .weekdays{font-size:10px}.vault-view .vault-editing .vault-calendar h2{font-size:17px!important}.vault-view .vault-editing #vaultMonth{font-size:18px!important}.vault-view .vault-editing .vault-date-title{font-size:10px!important}

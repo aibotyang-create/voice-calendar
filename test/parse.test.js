@@ -26,7 +26,7 @@ test('API 인증 및 AI 구조화 응답 처리',async()=>{
     let calls=0;
     global.fetch=async(url,options)=>{calls++;if(url.includes('tokeninfo')) return {ok:true,json:async()=>({aud:'test-client',email:'owner@example.com',email_verified:true})};
       const request=JSON.parse(options.body);assert.equal(request.text.format.strict,true);assert.equal(request.store,false);
-      if(request.text.format.name==='contact')return {ok:true,json:async()=>({output:[{content:[{type:'output_text',text:JSON.stringify({name:'김민수',company:'ABC',title:'팀장',category:'고객',lastContact:'',notes:'제안서 논의',focus:'도입 비용',followup:'제안서 보내기',email:'',phone:''})}]}]})};
+      if(request.text.format.name==='contact')return {ok:true,json:async()=>({output:[{content:[{type:'output_text',text:JSON.stringify({transcript:'ABC 김민수 팀장',name:'김민수',company:'ABC',title:'팀장',category:'고객',lastContact:'',notes:'제안서 논의',focus:'도입 비용',followup:'제안서 보내기',email:'',phone:''})}]}]})};
       return {ok:true,json:async()=>({output:[{content:[{type:'output_text',text:JSON.stringify(event)}]}]})};};
     let res=response();await handler({method:'POST',headers:{},body:{text:'내일 미팅',history:[]}},res);assert.equal(res.code,401);assert.equal(calls,0);
     res=response();await handler({method:'POST',headers:{authorization:'Bearer test'},body:{text:'미팅',history:[]}},res);assert.equal(res.code,200);assert.equal(res.data.title,'팀 미팅');assert.equal(calls,2);

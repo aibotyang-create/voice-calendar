@@ -243,3 +243,20 @@ textarea,input,select{color:#27394f}textarea::placeholder,input::placeholder{col
 .vault-view .vault-notebook .live-markdown,.vault-view .notebook-reader{min-height:55vh}
 .vault-view [hidden]{display:none!important}
 @media(max-width:700px){.vault-view .vault-calendar,.vault-view .vault-notebook{padding:14px}.vault-view #vaultMonthGrid{gap:3px;grid-auto-rows:minmax(100px,1fr)}.vault-view .vault-date-title{font-size:11px;padding:4px}.vault-view .vault-calendar .agenda-heading{flex-wrap:wrap}.vault-view .vault-calendar h2{font-size:22px}}
+
+.person-node,.network-branch{cursor:grab;touch-action:none;user-select:none}.person-node:active,.network-branch:active{cursor:grabbing}.network-category-chip[aria-pressed=true]{outline:2px solid var(--category-color,#9aa9cc);outline-offset:2px}
+
+.capture-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:14px 22px;border:1px solid #dbe4f0;border-radius:14px;background:#fff;color:#172438;box-shadow:0 8px 36px #17243820;z-index:1000}#cardVideo{cursor:crosshair;max-height:55vh;object-fit:contain}
+
+/* SVG focus follows the node geometry, with no rectangular browser outline. */
+.person-node,.network-branch,.network-root,.person-node text,.network-branch text,.network-root text{-webkit-user-select:none!important;user-select:none!important;-webkit-tap-highlight-color:transparent;outline:none!important}
+.person-node:focus,.network-branch:focus,.network-root:focus{outline:none!important}
+.person-node.network-emphasized>circle:nth-of-type(2){fill-opacity:.65;stroke-width:3}
+.network-branch.network-emphasized>path{stroke-opacity:.85;stroke-width:3}
+.network-branch.network-emphasized>circle:last-of-type{fill-opacity:1}
+.network-person-edge.network-emphasized{stroke-opacity:.8;stroke-width:2.2}
+.person-node:focus-visible>circle:nth-of-type(2),.network-root:focus-visible>circle{stroke:#5376ad;stroke-width:3}
+.network-branch:focus-visible>circle:last-of-type{stroke:#5376ad;stroke-width:2}
+.rail-contact-mentions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.contact-mention-chip{display:inline-flex;align-items:center;gap:8px;padding:6px 9px;border-radius:20px;background:color-mix(in srgb,var(--mention-color) 22%,white);border:1px solid color-mix(in srgb,var(--mention-color) 55%,white);color:#24364d;font-size:12px;font-weight:600}
+.contact-mention-chip button{border:0;background:transparent;padding:0 3px;font-size:16px;color:#60708a;line-height:1}

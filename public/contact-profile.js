@@ -1,3 +1,4 @@
+import {initContactVault} from './contact-vault.js';
 import {refineContactEditor} from './contact-editor-ui.js';
 import {seoulDay} from './calendar.js';
 export const relationships=['멘토','대표','투자','지인','친구'];
@@ -19,7 +20,7 @@ export function initContactProfile({drawer,getData}){
   function drawStars(){for(const [i,b]of [...stars.children].entries()){b.classList.toggle('selected',i<Number($('pStrength').value));b.setAttribute('aria-pressed',String(i+1===Number($('pStrength').value)));}}
   function title(){const name=$('pName').value.trim();avatar.textContent=name.slice(0,2)||'새';heading.textContent=name||'새로운 인맥';}$('pName').addEventListener('input',title);
   const picker=document.createElement('label');picker.className='rail-priority';picker.append(document.createTextNode('중요도'));const select=document.createElement('select');select.id='railImportance';for(const [v,t]of [['all','전체'],['5','5 · 최우선'],['4','4 · 매우 중요'],['3','3 · 중요'],['2','2 · 보통'],['1','1 · 가볍게 연결']])select.add(new Option(t,v));picker.append(select);document.querySelector('.relationship-rail>.agenda-list-heading').after(picker);
-  const editorUi=refineContactEditor({drawer,getData});
-  function openPerson(p){relation.value=p.relationship||((relationships.includes(p.category))?p.category:'지인');$('pRegisteredOn').value=p.registeredOn||(!p.id?seoulDay(Date.now()):'');$('pRegisteredOn').readOnly=!!p.registeredOn;$('pMetAt').value=p.metAt||'';title();drawRelation();drawStars();editorUi.openPerson(p);}
-  return {openPerson};
+  const editorUi=refineContactEditor({drawer,getData});const relatedVault=initContactVault({host:form,getData});
+  function openPerson(p){relation.value=p.relationship||((relationships.includes(p.category))?p.category:'지인');$('pRegisteredOn').value=p.registeredOn||(!p.id?seoulDay(Date.now()):'');$('pRegisteredOn').readOnly=!!p.registeredOn;$('pMetAt').value=p.metAt||'';title();drawRelation();drawStars();editorUi.openPerson(p);relatedVault.openPerson(p);}
+  return {openPerson,render:()=>relatedVault.render()};
 }

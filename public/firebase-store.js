@@ -26,6 +26,7 @@ export async function prepareStore(config){
     ...createVaultStore(fs,db,root,accessToken),
     save:async contact=>{const {id,...data}=contact;if(!data.tags?.length)delete data.tags;if(!data.intro)delete data.intro;if(!data.birthday)delete data.birthday;await fs.setDoc(fs.doc(db,...root,'contacts',id),{...data,updatedAt:fs.serverTimestamp()});},
     applyContactEdits:plan=>applyContactEdits(fs,db,root,plan),
+    watchContactDocuments:(id,onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'documents'),fs.where('contactId','==',id)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
     readContactConversations:async ids=>{if(!ids.length)return [];if(ids.length>20)throw Error('한 번에 20명까지 선택해주세요.');const result=await fs.getDocs(fs.query(fs.collection(db,...root,'conversations'),fs.where('contactId','in',ids),fs.limit(400)));return result.docs.map(doc=>({...doc.data(),id:doc.id}));},
     saveContactImport:entries=>saveContactImports(fs,db,root,entries),
     patchContact:async(id,changes)=>{const data={...changes};if('tags' in data&&!data.tags?.length)data.tags=fs.deleteField();if('intro' in data&&!data.intro)data.intro=fs.deleteField();if('birthday' in data&&!data.birthday)data.birthday=fs.deleteField();await fs.updateDoc(fs.doc(db,...root,'contacts',id),{...data,updatedAt:fs.serverTimestamp()});},

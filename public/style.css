@@ -329,3 +329,5 @@ textarea,input,select{color:#27394f}textarea::placeholder,input::placeholder{col
 .global-cloud-bar .global-add-contact{margin-inline-start:auto;flex:none;font-size:13px;min-height:32px}
 
 .todo-row-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}.todo-move{border:0;background:transparent;color:#806a30;font-size:10px;line-height:1.3;padding:4px 3px;white-space:nowrap;border-radius:5px}.todo-move:hover{background:#f0e4bf;color:#45370f}.todo-move:disabled{opacity:.35;cursor:default}.todo-row .todo-label{min-width:0;flex:1}.todo-row-actions .todo-hide{flex-shrink:0}
+
+#noteNewPerson{flex-basis:100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 0}#noteNewPerson[hidden]{display:none}#noteNewPerson input{min-width:140px;max-width:240px;padding:9px 12px;border:1px solid #dfe7ef;border-radius:8px}#notePersonState{font-size:11px}#noteAddPerson{white-space:nowrap;font-size:12px}

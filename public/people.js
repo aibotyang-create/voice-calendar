@@ -1,3 +1,4 @@
+import {todoMoveTargets} from './todo-move.js';
 import {contactAfterEdit} from './contact-edits.js';
 import {editContacts} from './contact-edit-client.js';
 import {parseBirthday,createBirthdayCalendarSync} from './birthdays.js';
@@ -65,6 +66,10 @@ export function initPeople({getToken,googleApi,onSchedule,onQuickEvent}){
   document.addEventListener('ai-calendar:before-contact-edit',event=>{if(editorSession&&event.detail.ids.includes(editorSession.id))event.detail.pending.push(autosave.flush());});
   document.addEventListener('ai-calendar:contacts-edited',event=>{if(editorSession&&JSON.stringify(editorSession.read())!==editorSession.last)return;const update=event.detail.plan.updates.find(u=>u.contactId===editing);if(!update)return;const person=contacts.find(p=>p.id===editing);if(person)openPerson(contactAfterEdit(person,update));});
   $('closePerson').onclick=()=>dialog.close();$('addPerson').onclick=()=>openPerson();
+  const globalAdd=node('button','text-button global-add-contact','＋ 새 인맥 등록');
+  globalAdd.type='button';
+  globalAdd.onclick=()=>openPerson();
+  connectionBar.querySelector('.cloud-bar').append(globalAdd);
   $('personForm').onsubmit=async e=>{e.preventDefault();if(!store){$('personState').textContent='Google로 로그인해주세요.';return;}if(!readContactDraft()){$('personState').textContent='이름·카테고리·이메일을 확인해주세요.';return;}if(editorSession)editorSession.last=null;await autosave.flush();};
   const autoFields=new Set([...Object.values(fields),'pTags','pColor','pInheritColor']);function draftChanged(e){if(!editorSession||!autoFields.has(e.target.id)||e.isComposing)return;if(e.target.id==='pPhone'){const formatted=formatContactPhone(e.target.value);if(formatted!==e.target.value)e.target.value=formatted;}if(!store)return;autosave.change();}$('personForm').addEventListener('input',draftChanged,true);$('personForm').addEventListener('change',draftChanged,true);$('personForm').addEventListener('compositionend',draftChanged,true);$('personForm').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229&&e.target.tagName==='INPUT'){e.preventDefault();if(autoFields.has(e.target.id)&&store)autosave.flush();}});dialog.addEventListener('close',()=>{autosave.close();editorSession=null;});document.addEventListener('contact-record-ready',()=>{if(editorSession&&store){editorSession.last=null;autosave.change();}});window.addEventListener('pagehide',()=>autosave.flush());
   $('archivePerson').onclick=async()=>{if(!store||!editing)return;$('archivePerson').disabled=true;try{const p=contacts.find(p=>p.id===editing);await store.save({...cleanContact(p,categoryOptions(categoryRecords)),id:p.id,archived:true});dialog.close();}catch(e){$('personState').textContent=errorMessage(e);}finally{$('archivePerson').disabled=false;}};
@@ -84,7 +89,13 @@ export function initPeople({getToken,googleApi,onSchedule,onQuickEvent}){
       const hide=node('button','todo-hide','×');hide.type='button';hide.title='목록에서 숨기기';hide.setAttribute('aria-label',item.text+' 숨기기');hide.disabled=!store;
       check.onchange=async()=>{if(!store||todoSorter?.isBusy())return;check.disabled=true;try{await store.todo({...item,done:check.checked});$('todoState').textContent='저장됐어요.';}catch(e){check.checked=!check.checked;$('todoState').textContent=errorMessage(e);}finally{check.disabled=!store;}};
       hide.onclick=async()=>{if(!store||todoSorter?.isBusy())return;hide.disabled=true;try{await store.todo({...item,archived:true});$('todoState').textContent='목록에서 숨겼어요.';}catch(e){$('todoState').textContent=errorMessage(e);hide.disabled=false;}};
-      row.append(grip,label,hide);$('todoList').append(row);
+      const actions=node('div','todo-row-actions');
+      for(const target of todoMoveTargets(date)){
+        const move=node('button','todo-move',target.label);move.type='button';move.disabled=!store||target.date===date;move.setAttribute('aria-label',item.text+' '+target.label);
+        move.onclick=async()=>{if(!store||todoSorter?.isBusy())return;const buttons=[...row.querySelectorAll('button,input')];buttons.forEach(button=>button.disabled=true);try{await store.moveTodo(item.id,target.date);$('todoState').textContent=target.label+'했어요.';}catch(e){$('todoState').textContent=errorMessage(e);}finally{buttons.forEach(button=>button.disabled=!store);renderTodos();}};
+        actions.append(move);
+      }
+      actions.append(hide);row.append(grip,label,actions);$('todoList').append(row);
     }
   }
   $('todoForm').onsubmit=async e=>{e.preventDefault();if(!store)return;const text=$('todoText').value.trim();if(!text)return;$('addTodo').disabled=true;$('todoState').textContent='저장 중…';try{await store.todo({id:crypto.randomUUID(),date:$('todoDate').value,text,done:false,archived:false,order:nextTodoOrder(todos,$('todoDate').value),createdAt:Date.now()});$('todoText').value='';$('todoState').textContent='Firebase에 저장됐어요.';}catch(e){$('todoState').textContent=errorMessage(e);}finally{$('addTodo').disabled=!store;}};

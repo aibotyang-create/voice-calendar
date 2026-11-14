@@ -95,6 +95,7 @@ export function initPeople({getToken,googleApi,onSchedule,onQuickEvent}){
         move.onclick=async()=>{if(!store||todoSorter?.isBusy())return;const buttons=[...row.querySelectorAll('button,input')];buttons.forEach(button=>button.disabled=true);try{await store.moveTodo(item.id,target.date);$('todoState').textContent=target.label+'했어요.';}catch(e){$('todoState').textContent=errorMessage(e);}finally{buttons.forEach(button=>button.disabled=!store);renderTodos();}};
         actions.append(move);
       }
+      const archive=node('button','todo-move','보관함');archive.type='button';archive.setAttribute('aria-label',item.text+' 보관함으로 이동');archive.onclick=async()=>{if(!store||todoSorter?.isBusy())return;archive.disabled=true;try{await store.archiveTodo(item.id);$('todoState').textContent='보관함으로 옮겼어요.';}catch(e){$('todoState').textContent=errorMessage(e);archive.disabled=false;}};actions.append(archive);
       actions.append(hide);row.append(grip,label,actions);$('todoList').append(row);
     }
   }

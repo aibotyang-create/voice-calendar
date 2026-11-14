@@ -1,4 +1,12 @@
 import {normalizedTodo} from './note-todos.js';
+export function missedTodoRecommendations(todos,date){
+ const from=new Date(Date.parse(date+'T12:00:00Z')-7*86400000).toISOString().slice(0,10);
+ const today=todos.filter(t=>!t.archived&&t.date===date),seen=[];
+ for(const todo of [...todos].sort((a,b)=>b.date.localeCompare(a.date))){
+  if(todo.archived||todo.done||todo.date<from||todo.date>=date||today.some(t=>similarTask(t.text,todo.text))||seen.some(s=>similarTask(s.text,todo.text)))continue;
+  seen.push({text:todo.text,reason:todo.date+'에 남긴 미완료 할 일이에요.',sources:['todo:'+todo.id]});
+ }return seen.slice(0,4);
+}
 export function similarTask(a,b){const clean=text=>normalizedTodo(text).replace(/(해주세요|하기|해두기|하기위해|완료하기)$/g,''),x=clean(a),y=clean(b);if(!x||!y)return false;if(x===y)return true;if(Math.min(x.length,y.length)>=6&&(x.includes(y)||y.includes(x)))return true;const grams=t=>new Set(Array.from({length:Math.max(0,t.length-1)},(_,i)=>t.slice(i,i+2))),gx=grams(x),gy=grams(y);return gx.size&&gy.size&&2*[...gx].filter(g=>gy.has(g)).length/(gx.size+gy.size)>.78;}
 export function evidenceIndex(context){const out=new Map();for(const [key,prefix]of [['events','event'],['documents','document'],['todos','todo'],['conversations','conversation']])for(const row of context[key]||[])if(row.id)out.set(prefix+':'+row.id,{...row,kind:prefix,label:prefix==='event'?(row.title||row.summary||'일정'):prefix==='document'?(row.title||row.filename||'문서'):row.text||'기록'});return out;}
 export function calendarConflicts(context){const upcoming=(context.events||[]).filter(e=>e.status!=='cancelled'&&e.transparency!=='transparent'&&e.start?.dateTime&&e.end?.dateTime&&e.attendeeStatus!=='declined').map(e=>({...e,a:Date.parse(e.start.dateTime),b:Date.parse(e.end.dateTime)})).filter(e=>Number.isFinite(e.a)&&e.b>e.a&&e.b>Date.parse(context.date+'T00:00:00+09:00')).sort((a,b)=>a.a-b.a),warnings=[];const format=time=>new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(time));for(let i=0;i<upcoming.length;i++)for(let j=i+1;j<upcoming.length&&upcoming[j].a<upcoming[i].b;j++){const a=upcoming[i],b=upcoming[j];if(a.id===b.id)continue;warnings.push({kind:'warning',text:'확인 필요 · '+format(Math.max(a.a,b.a))+' 일정 중복',reason:(a.title||a.summary||'일정')+' ↔ '+(b.title||b.summary||'일정')+'의 시간이 겹칩니다. 시간 조정 여부를 확인하세요.',sources:['event:'+a.id,'event:'+b.id]});}return warnings.slice(0,4);}

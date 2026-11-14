@@ -1,3 +1,4 @@
+import {SAVED_TODO_ORDER,isSavedTodo,savedTodoPatch,dismissedTodoPatch} from './todo-storage.js';
 import {moveStoredTodo} from './todo-move.js';
 import {applyContactEdits} from './contact-edits.js';
 import {saveContactImports} from './contact-import.js';
@@ -31,8 +32,9 @@ export async function prepareStore(config){
     category:async(category,previousName,people=[])=>{const changed=people.filter(p=>previousName&&previousName!==category.name&&p.category===previousName);if(changed.length>499)throw Error('한 번에 변경할 수 있는 인맥 수를 초과했어요.');const batch=fs.writeBatch(db);const {id,...data}=category;batch.set(fs.doc(db,...root,'categories',id),{...data,updatedAt:fs.serverTimestamp()});for(const p of changed)batch.update(fs.doc(db,...root,'contacts',p.id),{category:category.name,updatedAt:fs.serverTimestamp()});await batch.commit();},
     watchDay:day=>{if(day===activeDay)return;activeDay=day;offTodos();todos=[];report();offTodos=fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('date','==',day),fs.limit(300)),snapshot=>{if(day!==activeDay)return;todos=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));report();},onError);},
     todo:async todo=>{const {id,...data}=todo;await fs.setDoc(fs.doc(db,...root,'todos',id),{...data,updatedAt:fs.serverTimestamp()});},
-    watchArchivedTodos:(onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('archived','==',true),fs.limit(300)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
-    archiveTodo:id=>fs.updateDoc(fs.doc(db,...root,'todos',id),{archived:true,updatedAt:fs.serverTimestamp()}),
+    watchArchivedTodos:(onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('order','==',SAVED_TODO_ORDER),fs.limit(300)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id})).filter(isSavedTodo)),onError),
+    archiveTodo:id=>fs.updateDoc(fs.doc(db,...root,'todos',id),{...savedTodoPatch(),updatedAt:fs.serverTimestamp()}),
+    dismissTodo:id=>fs.updateDoc(fs.doc(db,...root,'todos',id),{...dismissedTodoPatch(),updatedAt:fs.serverTimestamp()}),
     restoreTodo:(id,date)=>moveStoredTodo(fs,db,root,id,date,true),
     moveTodo:(id,date)=>moveStoredTodo(fs,db,root,id,date),
     todosBatch:async entries=>{if(entries.length>300)throw Error('한 번에 최대 300개까지 기록할 수 있어요.');const batch=fs.writeBatch(db);for(const {id,...data} of entries)batch.set(fs.doc(db,...root,'todos',id),{...data,updatedAt:fs.serverTimestamp()});await batch.commit();},

@@ -10,7 +10,7 @@ test('last seven days only excludes completed, archived, duplicate and today tas
 });
 test('archive displays stored tasks and restores selected task to today without changing completion',async()=>{
  const {document}=parseHTML('<section><div class="todo-date-controls"></div></section>');globalThis.document=document;let restored,patch;
- const store={watchArchivedTodos:fn=>{fn([{id:'a',date:'2026-11-10',text:'보관할 일',done:true}]);return ()=>{};},restoreTodo:async(id,date)=>{restored={id,date};}};
+ const store={watchArchivedTodos:fn=>{fn([{id:'a',date:'2026-11-10',text:'보관할 일',done:true,archived:true,order:Number.MAX_SAFE_INTEGER}]);return ()=>{};},restoreTodo:async(id,date)=>{restored={id,date};}};
  const archive=initTodoArchive({host:document.querySelector('section'),getData:()=>({store}),today:()=> '2026-11-14',onError:e=>{throw e;}});archive.render();document.querySelector('.todo-archive-toggle').click();assert.equal(document.querySelector('.todo-archive-list').hidden,false);await document.querySelector('.todo-archive-row button').onclick();assert.deepEqual(restored,{id:'a',date:'2026-11-14'});
  const fs={collection(){},query(){},where(){},limit(){},doc(){},serverTimestamp:()=>1,getDocs:async()=>({docs:[]}),runTransaction:async(_,fn)=>fn({get:async()=>({exists:()=>true,data:()=>({archived:true,done:true,date:'2026-11-14'})}),update:(_,data)=>patch=data})};
  await moveStoredTodo(fs,{},[],'a','2026-11-14',true);assert.equal(patch.archived,false);assert.equal(patch.date,'2026-11-14');assert.equal('done' in patch,false);

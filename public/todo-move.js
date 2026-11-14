@@ -3,7 +3,7 @@ import {nextTodoOrder} from './people-data.js';
 
 export function todoMoveTargets(date,now=Date.now()){
   const today=seoulDay(now),tomorrow=seoulDay(Date.parse(today+'T12:00:00+09:00')+86400000);
-  return [...(date===today?[]:[{date:today,label:'오늘로 이동'}]),{date:tomorrow,label:'내일로 이동'}];
+  return [...(date===today?[]:[{date:today,label:'오늘'}]),{date:tomorrow,label:'내일'}];
 }
 
 export async function moveStoredTodo(fs,db,root,id,date,restore=false){

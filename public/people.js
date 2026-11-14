@@ -88,11 +88,11 @@ export function initPeople({getToken,googleApi,onSchedule,onQuickEvent}){
       const label=node('label','todo-label'),check=node('input');check.type='checkbox';check.checked=Boolean(item.done);check.disabled=!store;label.append(check,node('span','',item.text));
       const hide=node('button','todo-hide','×');hide.type='button';hide.title='목록에서 숨기기';hide.setAttribute('aria-label',item.text+' 숨기기');hide.disabled=!store;
       check.onchange=async()=>{if(!store||todoSorter?.isBusy())return;check.disabled=true;try{await store.todo({...item,done:check.checked});$('todoState').textContent='저장됐어요.';}catch(e){check.checked=!check.checked;$('todoState').textContent=errorMessage(e);}finally{check.disabled=!store;}};
-      hide.onclick=async()=>{if(!store||todoSorter?.isBusy())return;hide.disabled=true;try{await store.todo({...item,archived:true});$('todoState').textContent='목록에서 숨겼어요.';}catch(e){$('todoState').textContent=errorMessage(e);hide.disabled=false;}};
+      hide.onclick=async()=>{if(!store||todoSorter?.isBusy())return;hide.disabled=true;try{await store.dismissTodo(item.id);$('todoState').textContent='목록에서 숨겼어요.';}catch(e){$('todoState').textContent=errorMessage(e);hide.disabled=false;}};
       const actions=node('div','todo-row-actions');
       for(const target of todoMoveTargets(date)){
-        const move=node('button','todo-move',target.label);move.type='button';move.disabled=!store||target.date===date;move.setAttribute('aria-label',item.text+' '+target.label);
-        move.onclick=async()=>{if(!store||todoSorter?.isBusy())return;const buttons=[...row.querySelectorAll('button,input')];buttons.forEach(button=>button.disabled=true);try{await store.moveTodo(item.id,target.date);$('todoState').textContent=target.label+'했어요.';}catch(e){$('todoState').textContent=errorMessage(e);}finally{buttons.forEach(button=>button.disabled=!store);renderTodos();}};
+        const move=node('button','todo-move',target.label);move.type='button';move.disabled=!store||target.date===date;move.setAttribute('aria-label',item.text+' '+target.label+'로 이동');
+        move.onclick=async()=>{if(!store||todoSorter?.isBusy())return;const buttons=[...row.querySelectorAll('button,input')];buttons.forEach(button=>button.disabled=true);try{await store.moveTodo(item.id,target.date);$('todoState').textContent=target.label+'로 이동했어요.';}catch(e){$('todoState').textContent=errorMessage(e);}finally{buttons.forEach(button=>button.disabled=!store);renderTodos();}};
         actions.append(move);
       }
       const archive=node('button','todo-move','보관함');archive.type='button';archive.setAttribute('aria-label',item.text+' 보관함으로 이동');archive.onclick=async()=>{if(!store||todoSorter?.isBusy())return;archive.disabled=true;try{await store.archiveTodo(item.id);$('todoState').textContent='보관함으로 옮겼어요.';}catch(e){$('todoState').textContent=errorMessage(e);archive.disabled=false;}};actions.append(archive);

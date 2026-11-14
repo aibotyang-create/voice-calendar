@@ -1,0 +1,18 @@
+const textOf=row=>['name','company','title','intro','category','focus','notes','followup','metAt','text','content','summary','description','email','phone','address','sns','birthday'].map(k=>row[k]||'').concat(row.tags||[]).join(' ');
+const professions=[['변호사','변호사|lawyer|attorney'],['회계사','회계사|accountant'],['세무사','세무사'],['변리사','변리사|patent attorney']];
+function terms(query){return [...new Set(query.toLowerCase().split(/[^가-힣a-z0-9]+/).flatMap(w=>[w,w.replace(/(?:에서는|에서|으로|하고|이랑|에게|관련|은|는|이|가|을|를|와|과)$/,'')]).filter(w=>w.length>=2&&!['나랑','가장','가까운','누구','누구지','알려줘','해줘','있는','내가','자료'].includes(w)))];}
+function rank(rows,query){const words=terms(query),profession=professions.find(([name])=>query.includes(name)),re=profession?new RegExp(profession[1],'i'):null;return rows.map(row=>{const text=textOf(row).toLowerCase();return {row,score:words.reduce((n,w)=>n+(text.includes(w)?w.length:0),0)+(re?.test(text)?30:0)};}).sort((a,b)=>b.score-a.score||Number(b.row.importance||b.row.strength||0)-Number(a.row.importance||a.row.strength||0)||String(b.row.date||'').localeCompare(String(a.row.date||'')));}
+function excerpt(content,query){const text=String(content||''),words=terms(query),positions=words.map(w=>text.toLowerCase().indexOf(w)).filter(i=>i>=0).slice(0,4);return positions.length?[...new Set(positions.map(i=>text.slice(Math.max(0,i-300),i+1400)))].join('\n…\n').slice(0,6500):text.slice(0,1800);}
+export function retrieveAssistantContext(base,query,{contacts=[],documents=[],todos=[],memories=[],events=[]}={}){
+ const people=rank(contacts.filter(p=>!p.archived),query).slice(0,50).map(({row:p})=>({...p,importance:p.strength??p.importance??2}));
+ const docs=rank(documents.filter(d=>!d.archived),query).slice(0,12).map(({row:d})=>({...d,content:excerpt(d.content,query),contentAvailable:!!d.content}));
+ return {...base,contacts:people,documents:docs,todos:rank(todos.filter(t=>!t.archived),query).slice(0,100).map(x=>x.row),conversations:rank(memories,query).slice(0,50).map(x=>x.row),events:rank(events,query).slice(0,100).map(({row:e})=>({...e,title:e.title||e.summary})),retrieval:{query,method:'query-ranked records and matching document excerpts',available:{contacts:contacts.filter(p=>!p.archived).length,documents:documents.filter(d=>!d.archived).length,todos:todos.filter(t=>!t.archived).length,events:events.length},relationshipRule:'가장 가까운 인맥 = 해당 조건에 맞는 사람 중 importance가 가장 큰 사람. 동점이면 공동 최상위로 표시.'}};
+}
+export function closestContactAnswer(query,context){
+ if(!/(가장\s*가까|제일\s*가까|가까운\s*.*누구)/.test(query)||/(등록|변경|수정|추가|삭제)/.test(query))return null;
+ const profession=professions.find(([name])=>query.includes(name));if(!profession)return null;
+ const candidates=(context.contacts||[]).filter(p=>!p.archived&&new RegExp(profession[1],'i').test(textOf(p))).sort((a,b)=>Number(b.importance??b.strength??2)-Number(a.importance??a.strength??2)||String(b.lastContact||'').localeCompare(String(a.lastContact||'')));
+ if(!candidates.length)return {summary:'현재 검색한 인맥 기록에서 '+profession[0]+'로 확인되는 분을 찾지 못했어요. 직함·한줄 소개·메모에 직업이 기록되어 있는지 확인해주세요.',question:'',actions:[]};
+ const highest=Number(candidates[0].importance??candidates[0].strength??2),top=candidates.filter(p=>Number(p.importance??p.strength??2)===highest);
+ return {summary:(top.length===1?'가장 가까운 '+profession[0]+'는 '+top[0].name+'님입니다.':'가장 가까운 '+profession[0]+'는 중요도 동점인 '+top.map(p=>p.name+'님').join(', ')+'입니다.')+'\n근거: 인맥 지도 중요도 '+highest+'/5로 '+profession[0]+' 인맥 중 가장 높습니다.\n'+top.slice(0,5).map(p=>[p.name,p.company,p.title,p.intro].filter(Boolean).join(' · ')+' [인맥: '+p.id+']').join('\n'),question:'',actions:[]};
+}

@@ -1,3 +1,4 @@
+import {outlineText} from './todo-outline.js';
 import {todoMoveTargets} from './todo-move.js';
 import {contactAfterEdit} from './contact-edits.js';
 import {editContacts} from './contact-edit-client.js';
@@ -84,10 +85,10 @@ export function initPeople({getToken,googleApi,onSchedule,onQuickEvent}){
     const date=$('todoDate').value,items=dailyTodoItems(todos,date);$('todoTitle').textContent=date===seoulDay(Date.now())?'오늘 할 일':date.slice(5).replace('-','월 ')+'일 할 일';$('todoProgress').textContent=items.filter(t=>t.done).length+' / '+items.length;$('todoList').replaceChildren();$('todoText').disabled=!store;$('addTodo').disabled=!store;
     if(!items.length)$('todoList').append(node('p','empty-note',store?'할 일을 추가하고 하나씩 완료해보세요.':'인맥 저장소 연결 후 사용할 수 있어요.'));
     for(const item of items){
-      const row=node('div','todo-row');row.dataset.todoId=item.id;const grip=node('button','todo-grip','⠿');grip.type='button';grip.disabled=!store;grip.setAttribute('aria-label',item.text+' 순서 변경');grip.title='드래그 또는 위·아래 방향키로 순서 변경';
-      const label=node('label','todo-label'),check=node('input');check.type='checkbox';check.checked=Boolean(item.done);check.disabled=!store;label.append(check,node('span','',item.text));
+      const row=node('div','todo-row');row.dataset.todoId=item.id;const outline=outlineText(item.text);row.classList.toggle('todo-child',outline.depth>0);row.style.setProperty('--todo-indent',outline.depth*22+'px');const grip=node('button','todo-grip','⠿');grip.type='button';grip.disabled=!store;grip.setAttribute('aria-label',item.text+' 순서 변경');grip.title='드래그 또는 위·아래 방향키로 순서 변경';
+      const label=node('label','todo-label'),check=node('input');check.type='checkbox';check.checked=Boolean(item.done);check.disabled=!store;label.append(check,node('span','',outline.text));
       const hide=node('button','todo-hide','×');hide.type='button';hide.title='목록에서 숨기기';hide.setAttribute('aria-label',item.text+' 숨기기');hide.disabled=!store;
-      check.onchange=async()=>{if(!store||todoSorter?.isBusy())return;check.disabled=true;try{await store.todo({...item,done:check.checked});$('todoState').textContent='저장됐어요.';}catch(e){check.checked=!check.checked;$('todoState').textContent=errorMessage(e);}finally{check.disabled=!store;}};
+      check.onchange=async()=>{if(!store||todoSorter?.isBusy())return;check.disabled=true;try{await store.patchTodoDone(item.id,check.checked);$('todoState').textContent='저장됐어요.';}catch(e){check.checked=!check.checked;$('todoState').textContent=errorMessage(e);}finally{check.disabled=!store;}};
       hide.onclick=async()=>{if(!store||todoSorter?.isBusy())return;hide.disabled=true;try{await store.dismissTodo(item.id);$('todoState').textContent='목록에서 숨겼어요.';}catch(e){$('todoState').textContent=errorMessage(e);hide.disabled=false;}};
       const actions=node('div','todo-row-actions');
       for(const target of todoMoveTargets(date)){

@@ -40,6 +40,8 @@ export async function prepareStore(config){
     archiveTodo:id=>fs.updateDoc(fs.doc(db,...root,'todos',id),{...savedTodoPatch(),updatedAt:fs.serverTimestamp()}),
     dismissTodo:id=>fs.updateDoc(fs.doc(db,...root,'todos',id),{...dismissedTodoPatch(),updatedAt:fs.serverTimestamp()}),
     restoreTodo:(id,date)=>moveStoredTodo(fs,db,root,id,date,true),
+    patchTodoDone:(id,done)=>fs.updateDoc(fs.doc(db,...root,'todos',id),{done,updatedAt:fs.serverTimestamp()}),
+    patchTodoText:(id,text)=>fs.updateDoc(fs.doc(db,...root,'todos',id),{text,updatedAt:fs.serverTimestamp()}),
     moveTodo:(id,date)=>moveStoredTodo(fs,db,root,id,date),
     todosBatch:async entries=>{if(entries.length>300)throw Error('한 번에 최대 300개까지 기록할 수 있어요.');const batch=fs.writeBatch(db);for(const {id,...data} of entries)batch.set(fs.doc(db,...root,'todos',id),{...data,updatedAt:fs.serverTimestamp()});await batch.commit();},
     addExtractedTodos:async entries=>{if(entries.length>30)throw Error('한 번에 최대 30개까지 등록할 수 있어요.');return fs.runTransaction(db,async transaction=>{const refs=entries.map(entry=>fs.doc(db,...root,'todos',entry.id)),snapshots=await Promise.all(refs.map(ref=>transaction.get(ref)));let added=0;entries.forEach(({id,...data},i)=>{if(snapshots[i].exists())return;transaction.set(refs[i],{...data,updatedAt:fs.serverTimestamp()});added++;});return {added,skipped:entries.length-added};});},

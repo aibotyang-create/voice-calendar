@@ -1,3 +1,4 @@
+import {deleteCalendarEvent} from './calendar-delete.js';
 import {seoulDay,monthRange,eventDays,calendarUrl,resolveEventColor} from './calendar.js';
 import {initPeople} from './people.js';
 import {initEventEditor,buildManualEvent} from './event-editor.js';
@@ -96,6 +97,7 @@ async function loadColorMetadata(){if(colorMetadataLoaded)return true;const sess
 }
 const el=(tag,className,text)=>{const n=document.createElement(tag);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n;};
 function renderCalendar(){
+  if($('dayAddCalendarEvent'))$('dayAddCalendarEvent').hidden=$('eventFilter').value==='todos';
   if($('eventFilter').value==='todos'){document.dispatchEvent(new CustomEvent('ai-calendar:render-todos',{detail:{year:calendarYear,month:calendarMonth,selectedDay}}));return;}
   const range=monthRange(calendarYear,calendarMonth),prefix=calendarYear+'-'+String(calendarMonth+1).padStart(2,'0');
   $('monthTitle').textContent=calendarYear+'년 '+(calendarMonth+1)+'월';$('monthGrid').replaceChildren();$('eventList').replaceChildren();
@@ -113,7 +115,7 @@ function renderCalendar(){
   if(!shown.length) $('eventList').append(el('p','empty-note',authenticated()?'표시할 일정이 없어요. 위에서 새 일정을 등록해보세요.':'Google 계정을 연결해주세요.'));
   for(const {event:e} of shown){
     const row=el('article','event-row'),date=e.start.date||seoulDay(e.start.dateTime),time=e.start.date?'종일':new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'numeric',minute:'2-digit'}).format(new Date(e.start.dateTime));row.style.borderLeft='3px solid '+pastelColor(resolveEventColor(e,eventPalette,defaultCalendarColor).background,.45);row.style.paddingLeft='10px';
-    row.append(el('div','event-time',date.slice(5).replace('-','/')+'\n'+time));const body=el('div','event-body');const link=el('a','event-name',e.summary||'이름 없는 일정');link.href=calendarUrl(e.htmlLink);link.target='_blank';link.rel='noopener noreferrer';body.append(link);if(e.location)body.append(el('p','event-location',e.location));if(e.extendedProperties?.private?.source==='malhae-calendar')body.append(el('span','person-tag','AI-calendar에서 등록'));row.append(body);$('eventList').append(row);
+    row.append(el('div','event-time',date.slice(5).replace('-','/')+'\n'+time));const body=el('div','event-body');const link=el('a','event-name',e.summary||'이름 없는 일정');link.href=calendarUrl(e.htmlLink);link.target='_blank';link.rel='noopener noreferrer';body.append(link);if(e.location)body.append(el('p','event-location',e.location));if(e.extendedProperties?.private?.source==='malhae-calendar')body.append(el('span','person-tag','AI-calendar에서 등록'));const remove=el('button','text-button calendar-event-delete','삭제');remove.type='button';remove.setAttribute('aria-label',(e.summary||'일정')+' 삭제');remove.onclick=async()=>{const owner=token;remove.disabled=true;try{const deleted=await deleteCalendarEvent(e,{confirm:message=>window.confirm(message),request:(path,options)=>{if(token!==owner)throw Error('계정이 바뀌었어요. 다시 선택해주세요.');return googleApi(path,options);}});if(deleted&&token===owner){$('calendarStatus').textContent='Google 캘린더에서 삭제했어요.';await loadCalendar();people.refresh();}}catch(error){$('calendarStatus').textContent=error.message;}finally{remove.disabled=false;}};row.append(body,remove);$('eventList').append(row);
   }
 }
 async function loadCalendar(){
@@ -141,4 +143,5 @@ renderCalendar();
 fetch('/api/config').then(r=>r.json()).then(c=>{config=c;people.configure(c.firebase);$('setupState').textContent=c.ready?'서버 설정이 준비됐어요. Google 계정을 연결해주세요.':'아직 Google·AI 설정 전이에요. 제공된 README를 따라 환경 변수를 설정해주세요.';if(!c.ready) $('setup').open=true;}).catch(()=>status('서버에 연결하지 못했어요. 새로고침해주세요.'));
 
 // Reveal only after navigation and dashboard initialization have completed.
+const dayAdd=el('button','secondary','일정 추가 +');dayAdd.id='dayAddCalendarEvent';dayAdd.type='button';dayAdd.onclick=()=>$('addCalendarEvent').click();$('listTitle').parentElement.append(dayAdd);
 queueMicrotask(()=>window.aiCalendarReady?.());

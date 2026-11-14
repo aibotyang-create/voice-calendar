@@ -1,6 +1,6 @@
 import {groundContactQuotes} from '../public/contact-grounding.js';
 import {contactEditSchema,contactEditInstructions,simpleContactEdit,validateContactEdits} from '../public/contact-edits.js';
-import {categoryMoveFromText,requestsNewContact,simpleNewContacts} from '../public/contact-intents.js';
+import {categoryMoveFromText,requestsNewContact,simpleContactRequest} from '../public/contact-intents.js';
 import {attachmentContent} from '../public/ai-attachments.js';
 import {groundedRecommendations} from '../public/recommendations.js';
 import {verifiedCard} from '../public/card-capture.js';
@@ -52,7 +52,7 @@ export default async function handler(req,res){
     const identity=await auth.json();
     if(!auth.ok||identity.aud!==process.env.GOOGLE_CLIENT_ID||String(identity.email_verified)!=='true'||identity.email?.toLowerCase()!==process.env.ALLOWED_EMAIL.toLowerCase()) return res.status(403).json({error:'설정한 본인 Google 계정으로 다시 연결해주세요.'});
     if(body.mode==='contact-edit'){const direct=simpleContactEdit(body.text,body.context.contacts);if(direct)return res.json(validateContactEdits(direct,body.context,body.text));}
-    if(body.mode==='contacts'){const direct=simpleNewContacts(body.text);if(direct)return res.json({contacts:validateContactImport({contacts:direct},body.text)});}
+    if(body.mode==='contacts'){const direct=simpleContactRequest(body.text,new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()));if(direct)return res.json({contacts:validateContactImport({contacts:direct},body.text)});}
     if(body.mode==='contacts'&&!requestsNewContact(body.text)){const moved=categoryMoveFromText(body.text,body.categories||['대표','멘토','기관','지인','친구']);if(moved)return res.json({contacts:validateContactImport({contacts:moved},body.text)});}
     const now=new Date().toISOString(),seoulDate=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
     const response=await fetch('https://api.openai.com/v1/responses',{

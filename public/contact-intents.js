@@ -21,3 +21,26 @@ export function simpleNewContacts(text){
   if(names.some(n=>['인맥','사람','연락처','새로운'].includes(n)))return null;
   return names.map(name=>({name,intent:'record',sourceQuote:text,category:'지인',tags:[],meeting:null}));
 }
+
+export function simpleContactRequest(text,today){
+  const direct=simpleNewContacts(text);if(direct)return direct;
+  const names='([가-힣]{2,5}?(?:\\s*(?:대표님|선생님|님))?(?:\\s*[,，]\\s*[가-힣]{2,5}?(?:\\s*(?:대표님|선생님|님))?)*)';
+  const met='\\s*(?:을|를|이랑|랑|와|과)?\\s*만났(?:어|어요|습니다|다)(?:요)?[.!！\\s]*(?:(?:등록|추가|기록)(?:해\\s*줘|해주세요|해줘요|해)?[.!！\\s]*)?';
+  const input=String(text).trim().replace(/^나(?:는)?\s+/, '');
+  let match=new RegExp('^'+names+'\\s+(오늘|어제|그저께)'+met+'$').exec(input),people,relative;
+  if(match){people=match[1];relative=match[2];}
+  else{match=new RegExp('^(오늘|어제|그저께)\\s+'+names+met+'$').exec(input);if(!match)return null;relative=match[1];people=match[2];}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(today))return null;
+  const date=new Date(Date.parse(today+'T12:00:00Z')-({오늘:0,어제:1,그저께:2}[relative])*86400000).toISOString().slice(0,10);
+  return [...new Set(people.split(/[,，]/).map(n=>n.trim().replace(/\s*(대표님|선생님|님)$/,'')))].map(name=>({name,intent:'record',category:'지인',sourceQuote:text,tags:[],lastContact:date,meeting:{date,text:people+' 만남',sourceQuote:text}}));
+}
+
+export function contactRequestPlan(text,today){
+  const contacts=simpleContactRequest(text,today);if(!contacts)return null;
+  return {summary:'인맥과 만남을 기록합니다.',question:'',actions:[{kind:'contact',title:contacts.map(p=>p.name).join(', '),text,date:today,contactId:'',sourceIds:[]}]};
+}
+
+export function preserveContactRequest(plan,text){
+  if(!plan.question&&plan.actions?.length&&plan.actions.every(a=>a.kind==='contact'))return {...plan,actions:[{...plan.actions[0],text}]};
+  return plan;
+}

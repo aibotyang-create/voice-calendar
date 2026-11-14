@@ -4,7 +4,12 @@ service cloud.firestore {
     function owner(uid) {
       return request.auth != null && request.auth.uid == uid
         && request.auth.token.email_verified == true
-        && request.auth.token.email == 'qaz73700@gmail.com';
+        && request.auth.token.email == 'qaz73700@gmail.com'
+        && request.auth.token.app_lock_sid is string
+        && exists(/databases/$(database)/documents/_privateSessions/$(request.auth.token.app_lock_sid))
+        && get(/databases/$(database)/documents/_privateSessions/$(request.auth.token.app_lock_sid)).data.uid == uid
+        && get(/databases/$(database)/documents/_privateSessions/$(request.auth.token.app_lock_sid)).data.revoked == false
+        && get(/databases/$(database)/documents/_privateSessions/$(request.auth.token.app_lock_sid)).data.expiresAt > request.time.toMillis();
     }
     function validTag(tags, index) {
       return tags.size() <= index || (tags[index] is string && tags[index].size() > 0 && tags[index].size() <= 40);

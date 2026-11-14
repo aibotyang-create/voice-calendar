@@ -1,11 +1,13 @@
 const routes={overview:'overview',capture:'registration',peopleCapture:'registration',calendar:'calendar',agendaTitle:'calendar',people:'people',preparation:'calendar',vault:'vault'};
 export function pageForHash(hash){return routes[hash.replace(/^#/,'')]||'overview';}
-export function installNavigation({views,nav,onChange=()=>{}}){
-  function show(){const page=pageForHash(location.hash);for(const [name,view]of Object.entries(views))view.hidden=name!==page;document.body.dataset.page=page;
+export function installNavigation({views,nav,onChange=()=>{},beforeChange=()=>true}){
+  let activePage='',activeHash='#overview',version=0;
+  function apply(page){activePage=page;activeHash=location.hash||'#overview';for(const [name,view]of Object.entries(views))view.hidden=name!==page;document.body.dataset.page=page;
     for(const a of nav.querySelectorAll('a')){const active=pageForHash(a.hash)===page;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');}
     const labels={overview:'대시보드',registration:'일정 관리',calendar:'캘린더',people:'인맥 관리',preparation:'만남 준비',vault:'보관함'};document.title='AI-calendar · '+labels[page];const breadcrumb=document.querySelector('.header-workspace strong');if(breadcrumb)breadcrumb.textContent=labels[page];
     onChange(page);if(location.hash==='#preparation')document.getElementById('preparation')?.scrollIntoView?.({block:'start',behavior:'smooth'});else window.scrollTo({top:0,behavior:'instant'});
   }
+  function show(){const page=pageForHash(location.hash),mine=++version,allowed=page===activePage?true:beforeChange(page,activePage);const finish=ok=>{if(mine!==version)return;if(ok)apply(page);else if(location.hash!==activeHash)location.hash=activeHash;};if(allowed&&typeof allowed.then==='function')allowed.then(finish,()=>finish(false));else finish(allowed);}
   for(const a of nav.querySelectorAll('a'))a.onclick=e=>{e.preventDefault();if(location.hash===a.hash)show();else location.hash=a.hash;};
   window.addEventListener('hashchange',show);show();return {show,navigate:hash=>{if(location.hash!=='#'+hash)location.hash=hash;show();}};
 }

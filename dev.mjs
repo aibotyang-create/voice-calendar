@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
 import {existsSync} from 'node:fs';
 if(existsSync('.env')) process.loadEnvFile('.env');
-const handlers={'/api/assistant':(await import('./api/assistant.js')).default,'/api/config':(await import('./api/config.js')).default,'/api/parse':(await import('./api/parse.js')).default};
+const handlers={'/api/lock':(await import('./api/lock.js')).default,'/api/assistant':(await import('./api/assistant.js')).default,'/api/config':(await import('./api/config.js')).default,'/api/parse':(await import('./api/parse.js')).default};
 http.createServer(async(req,res)=>{
   res.status=n=>{res.statusCode=n;return res;};res.json=v=>{res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(v));};
   try{

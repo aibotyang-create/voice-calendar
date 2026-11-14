@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {authenticateStore} from '../public/google-session.js';
+import {configureWorkspaceLock,workspaceUnlocked,peopleUnlocked,requirePeoplePin,leavePeople,resetWorkspaceLock} from '../public/workspace-lock.js';
+const {parseHTML}=await import(process.env.DOM_TEST_MODULE||'linkedom');
+test('Google login waits for server PIN before issuing unlocked Firebase credentials; people prompts again',async()=>{
+ const {window,document,Event}=parseHTML('<html><body></body></html>');globalThis.document=document;globalThis.window=window;globalThis.Event=Event;window.HTMLElement.prototype.showModal=function(){this.open=true;};window.HTMLElement.prototype.close=function(){this.open=false;};let accept=false,customCalls=0;
+ const previous=global.fetch;global.fetch=async(_,options)=>{const body=JSON.parse(options.body);if(body.action==='logout')return {ok:true,json:async()=>({locked:true})};assert.ok(body.idToken);assert.equal(body.pin,'731905');return {ok:accept,status:accept?200:401,json:async()=>accept?{customToken:body.purpose==='workspace'?'verified-custom-token':undefined,expiresAt:Date.now()+60000,peopleVerified:body.purpose==='people'}:{error:'틀린 비밀번호'}};};
+ const user={uid:'same-uid',getIdToken:async()=> 'verified-google-firebase-token'},session={currentUser:user},auth={GoogleAuthProvider:{credential:()=>({})},signInWithCredential:async()=>({user}),signInWithCustomToken:async(s,token)=>{customCalls++;assert.equal(s,session);assert.equal(token,'verified-custom-token');return {user};}};
+ try{configureWorkspaceLock(true);const pending=authenticateStore(auth,session,'google-access');await Promise.resolve();await Promise.resolve();assert.equal(customCalls,0);assert.equal(workspaceUnlocked(),false);const form=document.querySelector('form'),input=document.querySelector('input');input.value='731905';await form.onsubmit({preventDefault(){}});assert.equal(customCalls,0);assert.equal(document.getElementById('workspacePin').open,true);accept=true;input.value='731905';await form.onsubmit({preventDefault(){}});assert.equal(await pending,user);assert.equal(customCalls,1);assert.equal(workspaceUnlocked(),true);
+  const people=requirePeoplePin();assert.equal(peopleUnlocked(),false);input.value='731905';await form.onsubmit({preventDefault(){}});assert.equal(await people,true);assert.equal(peopleUnlocked(),true);leavePeople();assert.equal(peopleUnlocked(),false);const again=requirePeoplePin();document.querySelector('.pin-cancel').click();assert.equal(await again,false);
+ }finally{resetWorkspaceLock();configureWorkspaceLock(false);global.fetch=previous;}
+});

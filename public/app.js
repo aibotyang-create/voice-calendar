@@ -1,3 +1,4 @@
+import {configureWorkspaceLock,workspaceUnlocked,workspaceLockEnabled,resetWorkspaceLock,requirePeoplePin} from './workspace-lock.js';
 import {deleteCalendarEvent} from './calendar-delete.js';
 import {seoulDay,monthRange,eventDays,calendarUrl,resolveEventColor} from './calendar.js';
 import {initPeople} from './people.js';
@@ -7,10 +8,10 @@ const $=id=>document.getElementById(id);
 let config={},token='',expires=0,busy=false,history=[],draft=null,saved=null,recognition=null,listening=false;
 const scope='openid email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly https://www.googleapis.com/auth/drive.file';
 const status=s=>$('status').textContent=s;
-const authenticated=()=>token&&Date.now()<expires;
+const authenticated=()=>token&&Date.now()<expires&&workspaceUnlocked();
 function lock(value){busy=value;for(const id of ['submit','mic','save','discard','another','undo','connect']) $(id).disabled=value;$('mic').disabled=value||!recognition;}
 function clear(){history=[];draft=null;$('draft').hidden=true;$('success').hidden=true;$('text').value='';status('');}
-function sessionLost(){token='';expires=0;calendarRequest++;calendarEvents=[];eventPalette={};defaultCalendarColor={};colorMetadataLoaded=false;people.disconnect();$('connect').textContent='Google 계정 다시 연결 ↗';$('calendarStatus').textContent='Google 캘린더를 연결하면 일정이 표시됩니다.';renderCalendar();}
+function sessionLost(){resetWorkspaceLock();token='';expires=0;calendarRequest++;calendarEvents=[];eventPalette={};defaultCalendarColor={};colorMetadataLoaded=false;people.disconnect();$('connect').textContent='Google 계정 다시 연결 ↗';$('calendarStatus').textContent='Google 캘린더를 연결하면 일정이 표시됩니다.';renderCalendar();}
 async function calendarRequestApi(resource,options={}){
   if(!authenticated()){sessionLost();throw Error('Google 연결이 만료됐어요. 위의 연결 버튼을 눌러주세요.');}
   const response=await fetch('https://www.googleapis.com/calendar/v3/'+resource,{...options,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'}});
@@ -24,10 +25,11 @@ $('connect').onclick=()=>{
   const client=google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope,
     callback:async r=>{if(r.error){status('Google 연결이 완료되지 않았어요. 다시 시도해주세요.');return;}
       if(!google.accounts.oauth2.hasGrantedAllScopes(r,...scope.split(' '))){status('캘린더와 보관함(Drive) 권한을 모두 허용해주세요.');return;}
-      token=r.access_token;expires=Date.now()+(Number(r.expires_in)-60)*1000;$('connect').textContent='✓ Google 로그인됨';status('같은 계정으로 캘린더와 인맥 저장소를 연결하고 있어요…');calendarEvents=[];renderCalendar();loadCalendar();people.connect();try{await people.connectStore(token);status('캘린더와 인맥 저장소가 같은 Google 계정으로 연결됐어요.');}catch(e){status('캘린더는 연결됐지만 인맥 저장소 연결에 실패했어요. '+e.message+' · 상단의 저장소 동기화 다시 시도를 눌러주세요.');}},
+      token=r.access_token;expires=Date.now()+(Number(r.expires_in)-60)*1000;$('connect').textContent='✓ Google 로그인됨';status('같은 계정으로 캘린더와 인맥 저장소를 연결하고 있어요…');calendarEvents=[];renderCalendar();if(!workspaceLockEnabled()){loadCalendar();people.connect();}try{await people.connectStore(token);if(workspaceLockEnabled()){await loadCalendar();people.connect();if(document.body.dataset.page==='people')await requirePeoplePin();}status('캘린더와 인맥 저장소가 같은 Google 계정으로 연결됐어요.');}catch(e){if(workspaceLockEnabled()){sessionLost();status('앱 잠금을 해제하지 못했어요. '+e.message);}else status('캘린더는 연결됐지만 인맥 저장소 연결에 실패했어요. '+e.message+' · 상단의 저장소 동기화 다시 시도를 눌러주세요.');}},
     error_callback:()=>status('연결 창이 닫혔어요. 팝업을 허용하고 다시 연결해주세요.')});
   client.requestAccessToken();
 };
+document.addEventListener('ai-calendar:workspace-expired',()=>{sessionLost();status('보안 세션이 만료됐어요. 다시 로그인해주세요.');});
 $('disconnect').onclick=()=>{if(token&&window.google) google.accounts.oauth2.revoke(token,()=>{});sessionLost();clear();status('Google 연결을 해제했어요.');};
 const localTime=iso=>new Date(new Date(iso).getTime()+9*3600000).toISOString().slice(0,16);
 function showDraft(e){
@@ -139,7 +141,7 @@ const people=initPeople({getToken:()=>authenticated()?token:'',googleApi,onSched
 }});
 initEventEditor({connected:authenticated,defaultDay:()=>selectedDay||seoulDay(Date.now()),colors:()=>eventPalette,insert:async event=>{let response=await googleApi('',{method:'POST',body:JSON.stringify(event)});if(response.status===409)response=await googleApi('/'+event.id);if(!response.ok)throw Error('Google 캘린더에 저장하지 못했어요. 연결과 권한을 확인한 뒤 재시도해주세요.');return response.json();},onSaved:async event=>{const day=seoulDay(event.start.dateTime);calendarYear=Number(day.slice(0,4));calendarMonth=Number(day.slice(5,7))-1;selectedDay=day;await loadCalendar();people.refresh();}});
 renderCalendar();
-fetch('/api/config').then(r=>r.json()).then(c=>{config=c;people.configure(c.firebase);$('setupState').textContent=c.ready?'서버 설정이 준비됐어요. Google 계정을 연결해주세요.':'아직 Google·AI 설정 전이에요. 제공된 README를 따라 환경 변수를 설정해주세요.';if(!c.ready) $('setup').open=true;}).catch(()=>status('서버에 연결하지 못했어요. 새로고침해주세요.'));
+fetch('/api/config').then(r=>r.json()).then(c=>{config=c;configureWorkspaceLock(c.lockRequired);people.configure(c.firebase);$('setupState').textContent=c.ready?'서버 설정이 준비됐어요. Google 계정을 연결해주세요.':'아직 Google·AI 설정 전이에요. 제공된 README를 따라 환경 변수를 설정해주세요.';if(!c.ready) $('setup').open=true;}).catch(()=>status('서버에 연결하지 못했어요. 새로고침해주세요.'));
 
 // Reveal only after navigation and dashboard initialization have completed.
 queueMicrotask(()=>window.aiCalendarReady?.());

@@ -1,3 +1,4 @@
+import {requireWorkspaceSession} from '../server/workspace-session.js';
 import {enrichContactDetails} from '../public/contact-details.js';
 import {groundContactQuotes} from '../public/contact-grounding.js';
 import {contactEditSchema,contactEditInstructions,simpleContactEdit,validateContactEdits} from '../public/contact-edits.js';
@@ -52,6 +53,7 @@ export default async function handler(req,res){
     const auth=await fetch('https://oauth2.googleapis.com/tokeninfo?access_token='+encodeURIComponent(token),{signal:AbortSignal.timeout(10000)});
     const identity=await auth.json();
     if(!auth.ok||identity.aud!==process.env.GOOGLE_CLIENT_ID||String(identity.email_verified)!=='true'||identity.email?.toLowerCase()!==process.env.ALLOWED_EMAIL.toLowerCase()) return res.status(403).json({error:'설정한 본인 Google 계정으로 다시 연결해주세요.'});
+    await requireWorkspaceSession(req,identity);
     if(body.mode==='contact-edit'){const direct=simpleContactEdit(body.text,body.context.contacts);if(direct)return res.json(validateContactEdits(direct,body.context,body.text));}
     if(body.mode==='contacts'){const direct=simpleContactRequest(body.text,new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()));if(direct)return res.json({contacts:validateContactImport(enrichContactDetails({contacts:direct},body.text,new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())),body.text)});}
     if(body.mode==='contacts'&&!requestsNewContact(body.text)){const moved=categoryMoveFromText(body.text,body.categories||['대표','멘토','기관','지인','친구']);if(moved)return res.json({contacts:validateContactImport({contacts:moved},body.text)});}
@@ -76,5 +78,5 @@ export default async function handler(req,res){
     const event=validateEvent(JSON.parse(output));
     if(!event.question&&Date.parse(event.start)<Date.now()) return res.json({question:'이미 지난 시간이에요. 어느 날짜와 시간으로 등록할까요?'});
     return res.json(event);
-  }catch(e){return res.status(502).json({error:e.name==='TimeoutError'?'응답이 지연되고 있어요. 잠시 후 다시 시도해주세요.':body?.mode==='contact-edit'?'인맥 수정 요청을 처리하지 못했어요. 변경할 항목과 값을 구체적으로 적어주세요.':['contact','contacts'].includes(body?.mode)?'인맥 정보를 나누지 못했어요. 알아볼 수 있는 이름이나 사진을 다시 확인해주세요.':'일정을 정리하지 못했어요. 날짜와 시간을 포함해 다시 입력해주세요.'});}
+  }catch(e){if(e.status)return res.status(e.status).json({error:e.message});return res.status(502).json({error:e.name==='TimeoutError'?'응답이 지연되고 있어요. 잠시 후 다시 시도해주세요.':body?.mode==='contact-edit'?'인맥 수정 요청을 처리하지 못했어요. 변경할 항목과 값을 구체적으로 적어주세요.':['contact','contacts'].includes(body?.mode)?'인맥 정보를 나누지 못했어요. 알아볼 수 있는 이름이나 사진을 다시 확인해주세요.':'일정을 정리하지 못했어요. 날짜와 시간을 포함해 다시 입력해주세요.'});}
 }

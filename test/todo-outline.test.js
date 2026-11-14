@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {outlineText,encodeOutline,bindTodoOutline} from '../public/todo-outline.js';
 const {parseHTML}=await import(process.env.DOM_TEST_MODULE||'linkedom');
-test('outline storage retains readable text and depth while ordinary bullets are unchanged',()=>{
- assert.deepEqual(outlineText(encodeOutline('자료 준비',2)),{depth:2,text:'자료 준비'});assert.equal(encodeOutline('자료 준비',0),'자료 준비');assert.deepEqual(outlineText('· 기존 문장'),{depth:0,text:'· 기존 문장'});
+test('outline storage retains readable text and depth, and typed bullets become indented subtasks',()=>{
+ assert.deepEqual(outlineText(encodeOutline('자료 준비',2)),{depth:2,text:'자료 준비'});assert.equal(encodeOutline('자료 준비',0),'자료 준비');assert.deepEqual(outlineText('· 기존 문장'),{depth:1,text:'기존 문장'});assert.deepEqual(outlineText('\t세부 내용'),{depth:1,text:'세부 내용'});
 });
 test('Tab indents persisted and draft todos, Shift Tab outdents without changing date or completion',async()=>{
  const {document,Event}=parseHTML('<div id="list"><div data-todo-id="parent"><input class="todo-editor"></div><div data-todo-id="child"><input class="todo-editor" value="자료 준비"></div><input class="todo-draft todo-editor" value="다음 세부 작업"></div>');globalThis.document=document;

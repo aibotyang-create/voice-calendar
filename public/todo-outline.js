@@ -1,6 +1,6 @@
 // Tabs and a bullet encode outline depth in the existing text field, so older
 // clients and exports retain readable subtasks without a Firestore migration.
-export function outlineText(text){const match=String(text||'').match(/^(\t{1,3})· (.*)$/s);return match?{depth:match[1].length,text:match[2]}:{depth:0,text:String(text||'')};}
+export function outlineText(text){const value=String(text||''),bullet=value.match(/^(\t{0,3}| {0,6})·\s*(.*)$/s);if(bullet){const whitespace=bullet[1],depth=whitespace.includes('\t')?whitespace.length:Math.ceil(whitespace.length/2);return {depth:Math.max(1,Math.min(3,depth)),text:bullet[2]};}const tab=value.match(/^(\t{1,3})(.*)$/s);return tab?{depth:tab[1].length,text:tab[2]}:{depth:0,text:value};}
 export function encodeOutline(text,depth=0){const value=String(text).trim(),level=Math.max(0,Math.min(3,Number(depth)||0));return (level?'\t'.repeat(level)+'· ':'')+value;}
 export function styleOutline(input,depth){input.dataset.outlineDepth=String(depth);input.style.setProperty('--todo-indent',depth*22+'px');const row=input.closest('[data-todo-id]');if(row){row.classList.toggle('todo-child',depth>0);row.style.setProperty('--todo-indent',depth*22+'px');}}
 export function bindTodoOutline(list,{getItems,getStore,report}){

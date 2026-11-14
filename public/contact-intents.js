@@ -8,3 +8,16 @@ export function categoryMoveFromText(text,categories){
  return [...new Set(names.map(n=>n.replace(/^@/,'')))].map(name=>({name,company:'',title:'',category:target.name,categoryExplicit:true,intent:'update',lastContact:'',notes:'',focus:'',followup:'',email:'',phone:'',address:'',tags:[],meeting:null,sourceQuote:text}));
 }
 export function collectiveFriendFacts(text){const match=/(?:전부|모두|다)\s*(?:(대학교|고등학교|중학교|초등학교|대학|학교)\s*)?친구/.exec(text);return match?{category:'친구',tag:match[1]||''}:null;}
+
+export function requestsNewContact(text) {
+  return /(?:신규|새로운|새)\s*(?:인맥|연락처|사람)|(?:인맥|연락처)(?:으로|로|에|을|를)?\s*(?:신규로?\s*|새로\s*)?(?:추가|등록)|신규\s*등록/.test(text);
+}
+
+// Only unambiguous name-only registration commands bypass model extraction.
+export function simpleNewContacts(text){
+  const match=String(text).trim().match(/^(?:(?:새로운?\s*)?(?:인맥|사람|연락처)\s*(?:추가|등록)?\s*[:：]?\s*)?([가-힣]{2,5}?(?:님)?(?:\s*[,，]\s*[가-힣]{2,5}?(?:님)?)*)\s*(?:을|를)?\s*(?:(?:새\s*)?(?:인맥|사람|연락처)(?:으로|로|에)?\s*)?(?:추가|등록)(?:해\s*줘|해주세요|해줘요|해|하기)?[.!！\s]*$/);
+  if(!match)return null;
+  const names=[...new Set(match[1].split(/[,，]/).map(n=>n.trim().replace(/님$/,'')))];
+  if(names.some(n=>['인맥','사람','연락처','새로운'].includes(n)))return null;
+  return names.map(name=>({name,intent:'record',sourceQuote:text,category:'지인',tags:[],meeting:null}));
+}

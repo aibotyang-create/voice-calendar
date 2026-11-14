@@ -97,7 +97,6 @@ async function loadColorMetadata(){if(colorMetadataLoaded)return true;const sess
 }
 const el=(tag,className,text)=>{const n=document.createElement(tag);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n;};
 function renderCalendar(){
-  if($('dayAddCalendarEvent'))$('dayAddCalendarEvent').hidden=$('eventFilter').value==='todos';
   if($('eventFilter').value==='todos'){document.dispatchEvent(new CustomEvent('ai-calendar:render-todos',{detail:{year:calendarYear,month:calendarMonth,selectedDay}}));return;}
   const range=monthRange(calendarYear,calendarMonth),prefix=calendarYear+'-'+String(calendarMonth+1).padStart(2,'0');
   $('monthTitle').textContent=calendarYear+'년 '+(calendarMonth+1)+'월';$('monthGrid').replaceChildren();$('eventList').replaceChildren();
@@ -143,5 +142,4 @@ renderCalendar();
 fetch('/api/config').then(r=>r.json()).then(c=>{config=c;people.configure(c.firebase);$('setupState').textContent=c.ready?'서버 설정이 준비됐어요. Google 계정을 연결해주세요.':'아직 Google·AI 설정 전이에요. 제공된 README를 따라 환경 변수를 설정해주세요.';if(!c.ready) $('setup').open=true;}).catch(()=>status('서버에 연결하지 못했어요. 새로고침해주세요.'));
 
 // Reveal only after navigation and dashboard initialization have completed.
-const dayAdd=el('button','secondary','일정 추가 +');dayAdd.id='dayAddCalendarEvent';dayAdd.type='button';dayAdd.onclick=()=>$('addCalendarEvent').click();$('listTitle').parentElement.append(dayAdd);
 queueMicrotask(()=>window.aiCalendarReady?.());

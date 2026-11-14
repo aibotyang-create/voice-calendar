@@ -1,3 +1,4 @@
+import {expenseEntry,expenseEventId} from './daily-expenses.js';
 import {MISSED_DISMISSAL_EVENT,saveMissedDismissal} from './missed-dismissals.js';
 import {BACKLOG_TODO_ORDER,isBacklogTodo,backlogTodo,SAVED_TODO_ORDER,isSavedTodo,savedTodoPatch,dismissedTodoPatch} from './todo-storage.js';
 import {moveStoredTodo} from './todo-move.js';
@@ -34,6 +35,9 @@ export async function prepareStore(config){
     category:async(category,previousName,people=[])=>{const changed=people.filter(p=>previousName&&previousName!==category.name&&p.category===previousName);if(changed.length>499)throw Error('한 번에 변경할 수 있는 인맥 수를 초과했어요.');const batch=fs.writeBatch(db);const {id,...data}=category;batch.set(fs.doc(db,...root,'categories',id),{...data,updatedAt:fs.serverTimestamp()});for(const p of changed)batch.update(fs.doc(db,...root,'contacts',p.id),{category:category.name,updatedAt:fs.serverTimestamp()});await batch.commit();},
     watchDay:day=>{if(day===activeDay)return;activeDay=day;offTodos();todos=[];report();offTodos=fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('date','==',day),fs.limit(300)),snapshot=>{if(day!==activeDay)return;todos=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));report();},onError);},
     todo:async todo=>{const {id,...data}=todo;await fs.setDoc(fs.doc(db,...root,'todos',id),{...data,updatedAt:fs.serverTimestamp()});},
+    watchExpenses:(date,onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'tasks'),fs.where('eventId','==',expenseEventId(date))),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id}))),onError),
+    saveExpense:async({id,date,title,amount})=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw Error('지출 날짜를 확인해주세요.');const entry=expenseEntry(title,amount);await fs.setDoc(fs.doc(db,...root,'tasks',id.startsWith('expense-')?id:'expense-'+id),{eventId:expenseEventId(date),label:JSON.stringify(entry),done:false,updatedAt:fs.serverTimestamp()});},
+    removeExpense:id=>{if(!id.startsWith('expense-'))throw Error('지출 항목을 확인해주세요.');return fs.updateDoc(fs.doc(db,...root,'tasks',id),{done:true,updatedAt:fs.serverTimestamp()});},
     saveBacklogTodo:async item=>{const {id,...data}=backlogTodo(item);await fs.setDoc(fs.doc(db,...root,'todos',id),{...data,updatedAt:fs.serverTimestamp()});},
     watchBacklogTodos:(onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('order','==',BACKLOG_TODO_ORDER)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id})).filter(isBacklogTodo)),onError),
     hideMissedTodo:id=>saveMissedDismissal(fs,db,root,id),

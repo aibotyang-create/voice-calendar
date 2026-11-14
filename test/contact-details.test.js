@@ -4,7 +4,7 @@ import {enrichContactDetails} from '../public/contact-details.js';
 import {validateContactImport,prepareContactImport,saveContactImports} from '../public/contact-import.js';
 
 test('prompt fills category, activity, venue, tag and dated encounter in their real stored fields',async()=>{
- const source='어제 네일 관리하는 문아림 대표님 만났어. 서울창업캠프에서';
+ const source='어제 네일 관리하는 문아림 대표님 처음 만났어. 서울창업캠프에서';
  const raw={contacts:[{name:'문아림',category:'지인',sourceQuote:source,tags:[],meeting:null}]};
  const detailed=enrichContactDetails(raw,source,'2026-11-14');
  const parsed=validateContactImport(detailed,source);

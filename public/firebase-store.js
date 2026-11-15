@@ -1,7 +1,7 @@
 import {expenseEntry,expenseEventId} from './daily-expenses.js';
 import {MISSED_DISMISSAL_EVENT,saveMissedDismissal} from './missed-dismissals.js';
 import {BACKLOG_TODO_ORDER,isBacklogTodo,backlogTodo,SAVED_TODO_ORDER,isSavedTodo,savedTodoPatch,dismissedTodoPatch} from './todo-storage.js';
-import {moveStoredTodo} from './todo-move.js';
+import {moveStoredTodo,updateStoredTodoGroup} from './todo-move.js';
 import {applyContactEdits} from './contact-edits.js';
 import {saveContactImports} from './contact-import.js';
 import {createVaultStore} from './vault-store.js';
@@ -43,7 +43,7 @@ export async function prepareStore(config){
     hideMissedTodo:id=>saveMissedDismissal(fs,db,root,id),
     watchMissedDismissals:(onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'tasks'),fs.where('eventId','==',MISSED_DISMISSAL_EVENT)),snapshot=>onData(snapshot.docs.map(doc=>doc.data()).filter(row=>row.done).map(row=>row.label)),onError),
     watchArchivedTodos:(onData,onError)=>fs.onSnapshot(fs.query(fs.collection(db,...root,'todos'),fs.where('order','==',SAVED_TODO_ORDER),fs.limit(300)),snapshot=>onData(snapshot.docs.map(doc=>({...doc.data(),id:doc.id})).filter(isSavedTodo)),onError),
-    archiveTodo:id=>fs.updateDoc(fs.doc(db,...root,'todos',id),{...savedTodoPatch(),updatedAt:fs.serverTimestamp()}),
+    archiveTodo:id=>updateStoredTodoGroup(fs,db,root,id,group=>group.map(()=>savedTodoPatch())),
     dismissTodo:id=>fs.updateDoc(fs.doc(db,...root,'todos',id),{...dismissedTodoPatch(),updatedAt:fs.serverTimestamp()}),
     restoreTodo:(id,date)=>moveStoredTodo(fs,db,root,id,date,true),
     patchTodoDone:(id,done)=>fs.updateDoc(fs.doc(db,...root,'todos',id),{done,updatedAt:fs.serverTimestamp()}),

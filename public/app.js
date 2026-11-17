@@ -29,7 +29,8 @@ $('connect').onclick=()=>{
     error_callback:()=>status('연결 창이 닫혔어요. 팝업을 허용하고 다시 연결해주세요.')});
   client.requestAccessToken();
 };
-document.addEventListener('ai-calendar:workspace-expired',()=>{sessionLost();status('보안 세션이 만료됐어요. 다시 로그인해주세요.');});
+let renewingWorkspace=false;
+document.addEventListener('ai-calendar:workspace-expired',async()=>{if(renewingWorkspace)return;if(!token||Date.now()>=expires){sessionLost();status('Google 연결이 만료됐어요. 다시 연결해주세요.');return;}renewingWorkspace=true;status('보안 잠금 시간이 지났어요. Google 연결은 유지되며 PIN만 다시 확인합니다.');try{await people.connectStore(token);await loadCalendar();people.connect();if(document.body.dataset.page==='people')await requirePeoplePin();status('PIN 확인이 완료됐어요. Google 연결을 유지합니다.');}catch(e){sessionLost();status('앱 잠금을 해제하지 못했어요. '+e.message);}finally{renewingWorkspace=false;}});
 $('disconnect').onclick=()=>{if(token&&window.google) google.accounts.oauth2.revoke(token,()=>{});sessionLost();clear();status('Google 연결을 해제했어요.');};
 const localTime=iso=>new Date(new Date(iso).getTime()+9*3600000).toISOString().slice(0,16);
 function showDraft(e){

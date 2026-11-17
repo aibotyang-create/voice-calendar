@@ -1,6 +1,6 @@
 import {randomBytes} from 'node:crypto';
 import {validPinRecord,verifyPin,signSessionId,readSignedSession} from './pin-crypto.js';
-export const LOCK_COOKIE='__Host-ai_calendar_lock',SESSION_MS=20*60*1000;
+export const LOCK_COOKIE='__Host-ai_calendar_lock',SESSION_MS=60*60*1000;
 const fail=(status,message,retryAfter)=>Object.assign(Error(message),{status,retryAfter});
 export function createPinService({db,auth,pepper,bootstrapRecord,allowedEmail,checkRules,now=Date.now}){
  const account=uid=>db.doc('_privatePin/'+uid),session=id=>db.doc('_privateSessions/'+id);

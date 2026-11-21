@@ -10,10 +10,12 @@ test('repeat encounter preserves original venue/tags and saves separate dated co
  assert.equal(merged.metAt,old.metAt);assert.deepEqual(merged.tags,old.tags);assert.equal(merged.phone,old.phone);assert.equal(merged.intro,old.intro);assert.doesNotMatch(entries[0].meeting.text,/처음/);
  const writes=[],fs={doc:(_, ...path)=>path.join('/'),serverTimestamp:()=>1,runTransaction:async(_,fn)=>fn({get:async()=>({exists:()=>true,data:()=>old}),set:(path,data)=>writes.push({path,data})})};await saveContactImports(fs,{},['users','owner'],entries);assert.equal(writes[0].data.metAt,old.metAt);assert.deepEqual(writes[0].data.tags,old.tags);assert.equal(writes[1].data.date,'2026-11-14');assert.match(writes[1].data.text,/마포생고기/);
 });
-test('new contact or explicitly first meeting may store venue, and stale client still cannot replace an existing venue',async()=>{
+test('only explicitly first meeting may store venue, even for newly added contacts, and stale client still cannot replace an existing venue',async()=>{
  const source='이종무 처음 만났어. 마포생고기에서';const parsed=validateContactImport({contacts:[{name:'이종무',sourceQuote:source,metAt:'마포생고기',tags:['마포생고기']}]},source),entries=await prepareContactImport(parsed,[old],[],'first','2026-11-14');assert.equal(mergeImportedContact(old,entries[0]).metAt,'마포생고기');
- const ordinary={...parsed[0],firstMeetingExplicit:false},fresh=await prepareContactImport([ordinary],[],[],'new','2026-11-14');assert.equal(mergeImportedContact(null,fresh[0]).metAt,'마포생고기');assert.equal(mergeImportedContact(old,fresh[0]).metAt,old.metAt);
+ const ordinary={...parsed[0],firstMeetingExplicit:false},fresh=await prepareContactImport([ordinary],[],[],'new','2026-11-14');assert.equal(mergeImportedContact(null,fresh[0]).metAt,undefined);assert.deepEqual(mergeImportedContact(null,fresh[0]).tags||[],[]);assert.equal(mergeImportedContact(old,fresh[0]).metAt,old.metAt);
 });
 test('explicit named participant overrides unrelated selected contacts',()=>{
  const other={id:'other',name:'김채원'},text='오늘 이종무 대표님을 만났어';assert.equal(mentionSource(text,[other],[other,old]),text);const narrowed=mentionSource(text,[other,old],[other,old]);assert.match(narrowed,/@이종무/);assert.doesNotMatch(narrowed,/@김채원/);
 });
+
+test('newly registered university friend keeps relationship tag but not recurring encounter venue',async()=>{const source='어제 대학교 친구 박지훈과 공릉동 카페에서 만났어';const parsed=validateContactImport({contacts:[{name:'박지훈',sourceQuote:source,category:'친구',metAt:'공릉동 카페',tags:['대학교','공릉동 카페'],meeting:{date:'2026-11-21',text:'공릉동 카페에서 만남',sourceQuote:source}}]},source);const entries=await prepareContactImport(parsed,[],[],'new-friend','2026-11-22'),saved=mergeImportedContact(null,entries[0]);assert.equal(saved.metAt,undefined);assert.deepEqual(saved.tags,['대학교']);assert.match(entries[0].meeting.text,/공릉동 카페/);});

@@ -32,7 +32,7 @@ export function enrichContactDetails(value,source,today){
    const resolved=relative?new Date(Date.parse(today+'T12:00:00Z')-({오늘:0,어제:1,그저께:2}[relative])*86400000).toISOString().slice(0,10):null;
    const meeting=person.meeting;
    const proof=meeting?.sourceQuote&&normalized(source).includes(normalized(meeting.sourceQuote));
-   if(!meeting?.text||!proof||!validDay(meeting.date))person.meeting={date:resolved|| (validDay(person.lastContact)?person.lastContact:today),text:encounter,sourceQuote:encounter};
+   if(!meeting?.text||!proof||!validDay(meeting.date))person.meeting={date:resolved||(validDay(meeting?.date)?meeting.date:validDay(person.lastContact)?person.lastContact:today),text:meeting?.text||encounter,sourceQuote:source};
    // Keep a verbatim span rather than joining non-contiguous evidence lines.
    if(person.meeting&&!normalized(source).includes(normalized(person.meeting.sourceQuote)))person.meeting.sourceQuote=source;
    if(resolved)person.meeting.date=resolved;

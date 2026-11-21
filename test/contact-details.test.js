@@ -16,5 +16,5 @@ test('prompt fills category, activity, venue, tag and dated encounter in their r
 });
 test('missing or ungrounded venues are not invented, and spacing in venue tags is accepted',()=>{
  const source='문아림님 만났어';const row=enrichContactDetails({contacts:[{name:'문아림',sourceQuote:source,metAt:'가상의 장소'}]},source,'2026-11-14').contacts[0];assert.equal(row.metAt,'');
- const text='문아림 대표님을 서울창업캠프에서 만났어';const parsed=validateContactImport({contacts:[{name:'문아림',sourceQuote:text,tags:['서울 창업 캠프']}]},text);assert.deepEqual(parsed[0].tags,['서울 창업 캠프']);
+ const text='문아림 대표님을 서울창업캠프에서 처음 만났어';const parsed=validateContactImport({contacts:[{name:'문아림',sourceQuote:text,tags:['서울 창업 캠프']}]},text);assert.deepEqual(parsed[0].tags,['서울 창업 캠프']);
 });

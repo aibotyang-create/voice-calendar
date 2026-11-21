@@ -1,3 +1,4 @@
+import {validDay} from './vault-data.js';
 const compact=value=>String(value||'').replace(/\s+/g,'');
 const escape=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 export function enrichContactDetails(value,source,today){
@@ -23,6 +24,21 @@ export function enrichContactDetails(value,source,today){
    const relative=source.match(/(?:^|\s)(오늘|어제|그저께)(?:\s|$)/)?.[1];
    const date=person.lastContact||(relative?new Date(Date.parse(today+'T12:00:00Z')-({오늘:0,어제:1,그저께:2}[relative])*86400000).toISOString().slice(0,10):today);
    person.meeting={date,text:source.trim(),sourceQuote:source};person.lastContact=date;
+  }
+  const normalized=s=>String(s||'').normalize('NFKC').replace(/\s+/g,' ').trim();
+  const encounter=source.split(/\r?\n|(?<=[.!?])\s+/).map(s=>s.trim()).filter(s=>/만났|만난|뵀|얘기했|이야기했|대화했/.test(s)).join('\n');
+  if(encounter.includes(person.name)&&/만났|만난|뵀/.test(encounter)){
+   const relative=encounter.match(/(?:^|\s)(오늘|어제|그저께)(?=\s|$)/)?.[1];
+   const resolved=relative?new Date(Date.parse(today+'T12:00:00Z')-({오늘:0,어제:1,그저께:2}[relative])*86400000).toISOString().slice(0,10):null;
+   const meeting=person.meeting;
+   const proof=meeting?.sourceQuote&&normalized(source).includes(normalized(meeting.sourceQuote));
+   if(!meeting?.text||!proof||!validDay(meeting.date))person.meeting={date:resolved|| (validDay(person.lastContact)?person.lastContact:today),text:encounter,sourceQuote:encounter};
+   // Keep a verbatim span rather than joining non-contiguous evidence lines.
+   if(person.meeting&&!normalized(source).includes(normalized(person.meeting.sourceQuote)))person.meeting.sourceQuote=source;
+   if(resolved)person.meeting.date=resolved;
+   person.lastContact=person.meeting.date;
+   const friend=source.slice(0,source.indexOf(person.name)).match(/(대학교|고등학교|중학교|초등학교|대학)?\s*친구\s*['"‘’“”]?\s*$/);
+   if(friend){person.category='친구';person.categoryExplicit=true;if(friend[1]&&!person.tags.includes(friend[1]))person.tags.push(friend[1]);}
   }
   return person;
  })};
